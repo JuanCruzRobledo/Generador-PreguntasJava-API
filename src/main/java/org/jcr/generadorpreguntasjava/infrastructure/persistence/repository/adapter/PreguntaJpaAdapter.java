@@ -5,14 +5,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.jcr.generadorpreguntasjava.domain.model.Pregunta;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.OpcionEntity;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.PreguntaEntity;
+import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.TematicaEntity;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.mapper.PersistenceMapper;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.repository.jpa.SpringDataPreguntaRepository;
+import org.jcr.generadorpreguntasjava.infrastructure.persistence.repository.jpa.SpringDataTematicaRepository;
 import org.jcr.generadorpreguntasjava.port.out.PreguntaRepositoryPort;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Adaptador secundario que implementa el puerto de salida para persistencia de preguntas.
@@ -27,31 +31,44 @@ public class PreguntaJpaAdapter implements PreguntaRepositoryPort {
     
     private final SpringDataPreguntaRepository springDataRepository;
     private final PersistenceMapper persistenceMapper;
-    
+    private final SpringDataTematicaRepository tematicaJpaRepository;
+
     @Override
+    @Transactional
     public Pregunta guardar(Pregunta pregunta) {
         log.debug("Guardando pregunta: {}", pregunta.enunciado());
-        
+
         try {
             // Convertir a entidad JPA
             PreguntaEntity entity = persistenceMapper.toEntity(pregunta);
-            
+
+            // ✅ Asegurar que las temáticas estén gestionadas
+            Set<TematicaEntity> tematicas = entity.getTematicas();
+            if (tematicas != null && !tematicas.isEmpty()) {
+                Set<TematicaEntity> managedTematicas = tematicas.stream()
+                        .map(t -> tematicaJpaRepository.findById(t.getId())
+                                .orElseThrow(() -> new IllegalArgumentException("Temática no encontrada con ID: " + t.getId())))
+                        .collect(Collectors.toSet());
+
+                entity.setTematicas(managedTematicas);
+            }
+
             // Establecer relaciones bidireccionales para opciones
             if (entity.getOpciones() != null) {
                 for (OpcionEntity opcion : entity.getOpciones()) {
                     opcion.setPregunta(entity);
                 }
             }
-            
+
             // Guardar usando Spring Data JPA
             PreguntaEntity savedEntity = springDataRepository.save(entity);
-            
+
             // Convertir de vuelta a dominio
             Pregunta savedPregunta = persistenceMapper.toDomain(savedEntity);
-            
+
             log.debug("Pregunta guardada exitosamente con ID: {}", savedEntity.getId());
             return savedPregunta;
-            
+
         } catch (Exception e) {
             log.error("Error al guardar pregunta: {}", e.getMessage(), e);
             throw new RuntimeException("Error al guardar pregunta", e);
