@@ -17,8 +17,8 @@ public record PreguntaResponse(
     
     String dificultad,
     
-    @JsonProperty("respuesta_correcta")
-    String respuestaCorrecta,
+    //@JsonProperty("respuesta_correcta")
+    //String respuestaCorrecta,
     
     String explicacion,
     
