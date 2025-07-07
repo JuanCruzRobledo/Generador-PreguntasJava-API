@@ -8,10 +8,10 @@ import jakarta.validation.constraints.NotNull;
  */
 public record ValidarRespuestaRequest(
     @NotNull
-    @JsonProperty("pregunta_id")
+    @JsonProperty("preguntaId")
     Long preguntaId,
     
     @NotNull
-    @JsonProperty("opcion_seleccionada")
+    @JsonProperty("opcionSeleccionada")
     String opcionSeleccionada
 ) {}

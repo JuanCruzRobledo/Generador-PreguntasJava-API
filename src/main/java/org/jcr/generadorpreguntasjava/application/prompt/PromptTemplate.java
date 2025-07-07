@@ -18,12 +18,14 @@ public class PromptTemplate {
         ## Formato de salida (obligatorio)
         Devuelve únicamente un objeto JSON con esta estructura exacta:
         {
-          "Codigo": "Bloque de código Java autocontenido, bien indentado, formateado y funcional.",
-          "Pregunta": "Texto claro, sin adornos. Enunciado técnico enfocado en la ejecución del código.",
-          "Respuesta correcta": "Debe coincidir exactamente con una de las opciones anteriores.",
-          "Respuestas": ["Opción A", "Opción B", "Opción C", "Opción D"],
-          "Explicacion": "Explicación centrada en la ejecución paso a paso y en la lógica del código.",
-          "tematicas_usadas": ["tematica_principal", "tematica_secundaria"]
+          "codigoJava": "Bloque de código Java autocontenido, bien indentado, formateado y funcional.",
+          "enunciado": "Texto claro, sin adornos. Enunciado técnico enfocado en la ejecución del código.",
+          "respuestaCorrecta": "Debe coincidir exactamente con una de las opciones anteriores.",
+          "opciones": ["Opción A", "Opción B", "Opción C", "Opción D"],
+          "explicacion": "Explicación centrada en la ejecución paso a paso y en la lógica del código.",
+          "tematicaPrincipal": "Temática principal del ejercicio",
+          "tematicaSecundaria": "Temática secundaria del ejercicio",
+          "dificultad": "facil"
         }
 
         ...

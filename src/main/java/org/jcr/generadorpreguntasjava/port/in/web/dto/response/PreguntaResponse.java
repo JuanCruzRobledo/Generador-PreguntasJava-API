@@ -10,14 +10,14 @@ import java.util.List;
 public record PreguntaResponse(
     Long id,
     
-    @JsonProperty("codigo_java")
+    @JsonProperty("codigoJava")
     String codigoJava,
     
     String enunciado,
     
     String dificultad,
     
-    //@JsonProperty("respuesta_correcta")
+    //@JsonProperty("respuestaCorrecta")
     //String respuestaCorrecta,
     
     String explicacion,

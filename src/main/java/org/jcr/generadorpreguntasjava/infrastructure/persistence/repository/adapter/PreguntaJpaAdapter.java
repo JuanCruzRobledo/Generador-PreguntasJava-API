@@ -104,8 +104,21 @@ public class PreguntaJpaAdapter implements PreguntaRepositoryPort {
         log.debug("Obteniendo todas las preguntas");
         
         try {
-            List<PreguntaEntity> entities = springDataRepository.findAllWithDetails();
-            List<Pregunta> preguntas = persistenceMapper.toDomainList(entities);
+            // Primera consulta: obtener preguntas con opciones
+            List<PreguntaEntity> preguntasConOpciones = springDataRepository.findAllWithOpciones();
+            
+            if (preguntasConOpciones.isEmpty()) {
+                log.debug("No se encontraron preguntas");
+                return List.of();
+            }
+            
+            // Segunda consulta: obtener las mismas preguntas con temáticas
+            List<PreguntaEntity> preguntasConTematicas = springDataRepository.findWithTematicas(preguntasConOpciones);
+            
+            // Combinar los resultados manualmente
+            List<PreguntaEntity> preguntasCompletas = combinarPreguntasConDetalles(preguntasConOpciones, preguntasConTematicas);
+            
+            List<Pregunta> preguntas = persistenceMapper.toDomainList(preguntasCompletas);
             
             log.debug("Se obtuvieron {} preguntas", preguntas.size());
             return preguntas;
@@ -114,6 +127,26 @@ public class PreguntaJpaAdapter implements PreguntaRepositoryPort {
             log.error("Error al obtener todas las preguntas: {}", e.getMessage(), e);
             throw new RuntimeException("Error al obtener preguntas", e);
         }
+    }
+    
+    /**
+     * Combina las listas de preguntas con opciones y temáticas para evitar duplicados.
+     */
+    private List<PreguntaEntity> combinarPreguntasConDetalles(List<PreguntaEntity> preguntasConOpciones, 
+                                                             List<PreguntaEntity> preguntasConTematicas) {
+        // Crear un mapa de las preguntas con temáticas por ID para búsqueda rápida
+        var tematicasPorId = preguntasConTematicas.stream()
+                .collect(Collectors.toMap(PreguntaEntity::getId, p -> p.getTematicas()));
+        
+        // Asignar las temáticas a las preguntas que ya tienen opciones
+        return preguntasConOpciones.stream()
+                .peek(p -> {
+                    Set<TematicaEntity> tematicas = tematicasPorId.get(p.getId());
+                    if (tematicas != null) {
+                        p.setTematicas(tematicas);
+                    }
+                })
+                .toList();
     }
     
     @Override

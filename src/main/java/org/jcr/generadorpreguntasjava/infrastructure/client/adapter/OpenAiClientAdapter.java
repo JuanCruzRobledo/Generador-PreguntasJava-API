@@ -122,12 +122,12 @@ public class OpenAiClientAdapter implements GeneradorDePreguntaServicePort {
             JsonNode rootNode = objectMapper.readTree(jsonLimpio);
             
             // Extraer campos del JSON
-            String codigoJava = rootNode.get("codigo_java").asText();
+            String codigoJava = rootNode.get("codigoJava").asText();
             String enunciado = rootNode.get("enunciado").asText();
-            String respuestaCorrecta = rootNode.get("respuesta_correcta").asText();
+            String respuestaCorrecta = rootNode.get("respuestaCorrecta").asText();
             String explicacion = rootNode.get("explicacion").asText();
-            String tematicaPrincipal = rootNode.get("tematica_principal").asText();
-            String tematicaSecundaria = rootNode.get("tematica_secundaria").asText();
+            String tematicaPrincipal = rootNode.get("tematicaPrincipal").asText();
+            String tematicaSecundaria = rootNode.get("tematicaSecundaria").asText();
             String dificultad = rootNode.get("dificultad").asText();
             
             // Extraer opciones

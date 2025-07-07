@@ -27,7 +27,7 @@ public class PromptTemplate {
         
         FORMATO DE RESPUESTA REQUERIDO (JSON válido):
         {
-          "codigo_java": "código Java completo y ejecutable",
+          "codigoJava": "código Java completo y ejecutable",
           "enunciado": "pregunta clara sobre qué hace el código",
           "opciones": [
             "Opción A",
@@ -35,10 +35,10 @@ public class PromptTemplate {
             "Opción C",
             "Opción D"
           ],
-          "respuesta_correcta": "Opción correcta exacta",
+          "respuestaCorrecta": "Opción correcta exacta",
           "explicacion": "explicación detallada de por qué es correcta",
-          "tematica_principal": "concepto principal (ej: arrays, bucles, etc.)",
-          "tematica_secundaria": "concepto secundario (ej: indexación, condiciones, etc.)",
+          "tematicaPrincipal": "concepto principal (ej: arrays, bucles, etc.)",
+          "tematicaSecundaria": "concepto secundario (ej: indexación, condiciones, etc.)",
           "dificultad": "facil|media|dificil"
         }
         

@@ -11,9 +11,9 @@ public record TematicaResponse(
     Long id,
     String nombre,
     
-    @JsonProperty("contador_usos")
+    @JsonProperty("contadorUsos")
     Integer contadorUsos,
     
-    @JsonProperty("timestamp_ultimo_uso")
+    @JsonProperty("timestampUltimoUso")
     LocalDateTime timestampUltimoUso
 ) {}

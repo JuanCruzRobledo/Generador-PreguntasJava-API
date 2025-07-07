@@ -2,6 +2,7 @@ package org.jcr.generadorpreguntasjava.application.mapper;
 
 import org.jcr.generadorpreguntasjava.domain.model.*;
 import org.jcr.generadorpreguntasjava.port.in.ValidarRespuestaPort;
+import org.jcr.generadorpreguntasjava.port.in.ConsultarEstadisticasPort;
 import org.jcr.generadorpreguntasjava.port.in.web.dto.response.*;
 import org.jcr.generadorpreguntasjava.port.in.web.dto.request.*;
 import org.mapstruct.Mapper;
@@ -9,6 +10,8 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Mapper para convertir entre entidades del dominio y DTOs.
@@ -42,6 +45,11 @@ public interface PreguntaMapper {
     @Mapping(target = "respuestaCorrecta", source = "respuestaCorrecta")
     ValidacionResponse toResponse(ValidarRespuestaPort.ResultadoValidacion resultado);
     
+    // === MAPPING DE USUARIO ===
+    
+    @Mapping(target = "nombreParaMostrar", source = ".", qualifiedByName = "calcularNombreParaMostrar")
+    UsuarioResponse toUsuarioResponse(Usuario usuario);
+    
     // === MAPPING DE REQUEST A DOMINIO ===
     
     @Mapping(target = ".", source = "dificultad", qualifiedByName = "stringToDificultad")
@@ -67,5 +75,58 @@ public interface PreguntaMapper {
             // En caso de dificultad inválida, retornar null
             return null;
         }
+    }
+    
+    @Named("calcularNombreParaMostrar")
+    default String calcularNombreParaMostrar(Usuario usuario) {
+        return usuario.getNombreParaMostrar();
+    }
+    
+    // === MAPPING DE ESTADÍSTICAS ===
+    
+    default EstadisticasResponse toResponse(EstadisticasUsuario estadisticas, ConsultarEstadisticasPort.ResumenProgreso resumen) {
+        Map<String, EstadisticasDificultadResponse> porDificultad = new HashMap<>();
+        estadisticas.porDificultad().forEach((dif, stats) -> 
+            porDificultad.put(dif.name().toLowerCase(), toResponse(stats))
+        );
+        
+        Map<String, EstadisticasTematicaResponse> porTematica = new HashMap<>();
+        estadisticas.porTematica().forEach((tema, stats) -> 
+            porTematica.put(tema, toResponse(stats))
+        );
+        
+        return new EstadisticasResponse(
+            estadisticas.totalPreguntas(),
+            estadisticas.respuestasCorrectas(),
+            estadisticas.porcentajeAciertos(),
+            estadisticas.getTiempoPromedioFormateado(),
+            porDificultad,
+            porTematica,
+            resumen.nivelUsuario(),
+            estadisticas.tieneBuenRendimiento()
+        );
+    }
+    
+    default EstadisticasDificultadResponse toResponse(EstadisticasPorDificultad estadisticas) {
+        return new EstadisticasDificultadResponse(
+            estadisticas.dificultad().name().toLowerCase(),
+            estadisticas.totalPreguntas(),
+            estadisticas.respuestasCorrectas(),
+            estadisticas.porcentajeAciertos(),
+            estadisticas.getTiempoPromedioFormateado(),
+            estadisticas.esBuenRendimiento()
+        );
+    }
+    
+    default EstadisticasTematicaResponse toResponse(EstadisticasPorTematica estadisticas) {
+        return new EstadisticasTematicaResponse(
+            estadisticas.tematica(),
+            estadisticas.totalPreguntas(),
+            estadisticas.respuestasCorrectas(),
+            estadisticas.porcentajeAciertos(),
+            estadisticas.getTiempoPromedioFormateado(),
+            estadisticas.esBuenRendimiento(),
+            estadisticas.esTematicaFavorita()
+        );
     }
 }

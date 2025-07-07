@@ -82,7 +82,7 @@ public class PreguntaController {
      * POST /api/v1/respuesta
      */
     @PostMapping("/respuesta")
-    public ApiResponse<ValidacionResponse> validarRespuesta(@Valid @RequestBody ValidarRespuestaRequest request) {
+    public ApiResponse<ValidacionResponse> validarRespuesta(@RequestBody ValidarRespuestaRequest request) {
         log.info("Solicitud de validación de respuesta recibida para pregunta ID: {}", request.preguntaId());
         
         try {

@@ -6,11 +6,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * DTO de respuesta para validación de respuestas.
  */
 public record ValidacionResponse(
-    @JsonProperty("es_correcta")
+    @JsonProperty("esCorrecta")
     boolean esCorrecta,
     
     String explicacion,
     
-    @JsonProperty("respuesta_correcta")
+    @JsonProperty("respuestaCorrecta")
     String respuestaCorrecta
 ) {}

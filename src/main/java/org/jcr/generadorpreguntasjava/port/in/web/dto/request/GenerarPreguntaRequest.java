@@ -8,6 +8,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public record GenerarPreguntaRequest(
     String dificultad,
     
-    @JsonProperty("tematica_deseada")
+    @JsonProperty("tematicaDeseada")
     String tematicaDeseada
 ) {}

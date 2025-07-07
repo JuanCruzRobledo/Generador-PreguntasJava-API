@@ -24,11 +24,16 @@ public interface SpringDataPreguntaRepository extends JpaRepository<PreguntaEnti
     
     /**
      * Obtiene todas las preguntas con sus opciones y temáticas.
+     * Usando dos consultas separadas para evitar producto cartesiano.
      */
     @Query("SELECT DISTINCT p FROM PreguntaEntity p " +
-           "LEFT JOIN FETCH p.opciones " +
-           "LEFT JOIN FETCH p.tematicas")
-    List<PreguntaEntity> findAllWithDetails();
+           "LEFT JOIN FETCH p.opciones")
+    List<PreguntaEntity> findAllWithOpciones();
+    
+    @Query("SELECT DISTINCT p FROM PreguntaEntity p " +
+           "LEFT JOIN FETCH p.tematicas " +
+           "WHERE p IN :preguntas")
+    List<PreguntaEntity> findWithTematicas(@Param("preguntas") List<PreguntaEntity> preguntas);
     
     /**
      * Busca una pregunta por ID con todos sus detalles.
