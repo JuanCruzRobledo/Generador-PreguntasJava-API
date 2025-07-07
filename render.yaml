@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: generador-preguntas-api
+    runtime: docker
+    repo: https://github.com/tu-usuario/tu-repo
+    branch: main
+    plan: free
+    envVars:
+      - key: JAVA_TOOL_OPTIONS
+        value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
