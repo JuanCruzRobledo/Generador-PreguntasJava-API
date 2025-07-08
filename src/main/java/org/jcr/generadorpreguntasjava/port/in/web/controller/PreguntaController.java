@@ -45,10 +45,11 @@ public class PreguntaController {
         try {
             // Mapear request a parámetros del dominio
             var dificultad = request != null ? preguntaMapper.mapDificultad(request) : null;
-            var tematicaDeseada = request != null ? request.tematicaDeseada() : null;
+            List<String> tematicasDeseadas = request != null ? request.tematicasDeseadas() : List.of();
+            List<String> tematicasYaUtilizadas = request != null ? request.tematicasYaUtilizadas() : List.of();
             
             // Generar pregunta
-            Pregunta preguntaGenerada = generarPreguntaPort.generarPregunta(dificultad, tematicaDeseada);
+            Pregunta preguntaGenerada = generarPreguntaPort.generarPregunta(dificultad, tematicasDeseadas, tematicasYaUtilizadas);
             
             // Mapear a DTO de respuesta
             PreguntaResponse response = preguntaMapper.toResponse(preguntaGenerada);

@@ -20,46 +20,59 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class PromptBuilderService {
-    
-    private final TematicaRepositoryPort tematicaRepositoryPort;
-    
+
     /**
-     * Construye un prompt completo incluyendo las temáticas ya utilizadas.
-     * 
-     * @param dificultad Dificultad deseada (puede ser null)
-     * @param tematicaDeseada Temática específica deseada (puede ser null)
-     * @return Prompt completo para la generación
+     * Construye un prompt completo para enviar al generador de preguntas.
+     *
+     * @param dificultad            Dificultad deseada (puede ser null)
+     * @param tematicasDeseadas     Lista de temáticas sobre las cuales generar preguntas
+     * @param tematicasYaUtilizadas Lista de temáticas que ya se usaron y deben evitarse
+     * @return Prompt completo en formato texto
      */
-    public String construirPromptCompleto(String dificultad, String tematicaDeseada) {
-        log.info("Construyendo prompt para dificultad: {} y temática: {}", dificultad, tematicaDeseada);
-        
-        // Obtener todas las temáticas utilizadas
-        List<Tematica> tematicasUtilizadas = tematicaRepositoryPort.obtenerTodas();
-        
-        // Construir la lista de temáticas ya usadas
-        String tematicasUsadas = construirListaTematicasUsadas(tematicasUtilizadas);
-        
+    public String construirPromptCompleto(String dificultad, List<String> tematicasDeseadas, List<String> tematicasYaUtilizadas) {
+        log.info("Construyendo prompt para dificultad: {}, temáticas deseadas: {}, excluyendo: {}",
+                dificultad, tematicasDeseadas, tematicasYaUtilizadas);
+
+        // Construye las cadenas de texto para insertar en el prompt
+        String tematicasUsadas = construirListaTematicasUsadas(tematicasYaUtilizadas);
+        String tematicasDeseadasStr = construirListaTematicasDeseadas(tematicasDeseadas);
+
         log.debug("Temáticas utilizadas encontradas: {}", tematicasUsadas);
-        
-        // Construir el prompt completo
-        String promptCompleto = PromptTemplate.construirPrompt(dificultad, tematicaDeseada, tematicasUsadas);
-        
+
+        // Llamada al template que arma el texto final
+        String promptCompleto = PromptTemplate.construirPrompt(dificultad, tematicasDeseadasStr, tematicasUsadas);
+
         log.debug("Prompt construido exitosamente");
         return promptCompleto;
     }
-    
+
     /**
-     * Construye una cadena de texto con las temáticas ya utilizadas.
+     * Convierte la lista de temáticas ya utilizadas en un string legible para el prompt.
+     *
+     * @param tematicas Lista de nombres de temáticas ya usadas
+     * @return Cadena con formato "- Temática"
      */
-    private String construirListaTematicasUsadas(List<Tematica> tematicas) {
-        if (tematicas.isEmpty()) {
-            return "Ninguna temática utilizada aún";
+    private String construirListaTematicasUsadas(List<String> tematicas) {
+        if (tematicas == null || tematicas.isEmpty()) {
+            return "Ninguna temática utilizada aún.";
         }
-        
+
         return tematicas.stream()
-            .map(tematica -> String.format("- %s (usada %d veces)", 
-                                         tematica.nombre(), 
-                                         tematica.contadorUsos()))
-            .collect(Collectors.joining("\\n"));
+                .map(t -> "- " + t)
+                .collect(Collectors.joining("\n"));
+    }
+
+    /**
+     * Convierte la lista de temáticas deseadas en un string para usar en el prompt.
+     *
+     * @param tematicas Lista de nombres de temáticas deseadas
+     * @return Cadena separada por comas: "bucles, condicionales, arrays"
+     */
+    private String construirListaTematicasDeseadas(List<String> tematicas) {
+        if (tematicas == null || tematicas.isEmpty()) {
+            return "cualquier temática";
+        }
+
+        return String.join(", ", tematicas);
     }
 }

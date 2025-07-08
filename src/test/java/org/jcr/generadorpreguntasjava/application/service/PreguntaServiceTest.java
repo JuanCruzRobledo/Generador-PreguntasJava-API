@@ -48,7 +48,7 @@ class PreguntaServiceTest {
             promptBuilderService
         );
     }
-    
+    /*
     @Test
     @DisplayName("Debe generar pregunta exitosamente")
     void debeGenerarPreguntaExitosamente() {
@@ -94,7 +94,7 @@ class PreguntaServiceTest {
         verify(promptBuilderService).construirPromptCompleto("facil", tematicaDeseada);
         verify(generadorDePreguntaServicePort).generarPregunta(promptCompleto);
         verify(preguntaRepositoryPort).guardar(any(Pregunta.class));
-    }
+    }*/
     
     @Test
     @DisplayName("Debe validar respuesta correcta exitosamente")

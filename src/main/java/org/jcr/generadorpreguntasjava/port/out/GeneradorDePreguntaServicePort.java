@@ -1,7 +1,5 @@
 package org.jcr.generadorpreguntasjava.port.out;
 
-import org.jcr.generadorpreguntasjava.domain.model.Dificultad;
-
 /**
  * Puerto de salida para el servicio de generación de preguntas.
  * Define el contrato para generar preguntas usando servicios externos (ej: OpenAI).
