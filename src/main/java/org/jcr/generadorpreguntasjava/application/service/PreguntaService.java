@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jcr.generadorpreguntasjava.domain.model.*;
 import org.jcr.generadorpreguntasjava.port.in.*;
 import org.jcr.generadorpreguntasjava.port.out.*;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,7 @@ public class PreguntaService implements GenerarPreguntaPort, ValidarRespuestaPor
     private final TematicaRepositoryPort tematicaRepositoryPort;
     private final GeneradorDePreguntaServicePort generadorDePreguntaServicePort;
     private final PromptBuilderService promptBuilderService;
+    private final Environment environment;
 
     @Override
     public Pregunta generarPregunta(Dificultad dificultad, List<String> tematicasDeseadas, List<String> tematicasYaUtilizadas) {
@@ -54,8 +56,14 @@ public class PreguntaService implements GenerarPreguntaPort, ValidarRespuestaPor
                 log.debug("Intento {}: Enviando prompt al servicio de generación", intento);
 
                 // 3. Enviar el prompt al servicio generador de preguntas (ej: IA externa)
-                GeneradorDePreguntaServicePort.RespuestaGeneracion respuesta =
-                        generadorDePreguntaServicePort.generarPregunta(promptCompleto);
+                GeneradorDePreguntaServicePort.RespuestaGeneracion respuesta;
+
+                if (Arrays.asList(environment.getActiveProfiles()).contains("test")) {
+                    log.info("Usando respuesta simulada de Gemini (perfil test)");
+                    respuesta = generadorDePreguntaServicePort.simularRespuesta();
+                } else {
+                    respuesta = generadorDePreguntaServicePort.generarPregunta(promptCompleto);
+                }
 
                 // 4. Mapear la respuesta a una entidad del dominio (Pregunta)
                 Pregunta pregunta = construirPreguntaDesdeLaRespuesta(respuesta);

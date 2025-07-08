@@ -39,7 +39,7 @@ public class OpenAiClientAdapter implements GeneradorDePreguntaServicePort {
             // Si la API key es de prueba, simular respuesta
             if (openAiConfig.getKey().equals("sk-test-key")) {
                 log.info("Usando simulación de OpenAI (API key de prueba)");
-                return simularRespuestaOpenAi();
+                return simularRespuesta();
             }
             
             // Construir request
@@ -76,11 +76,12 @@ public class OpenAiClientAdapter implements GeneradorDePreguntaServicePort {
             throw new RuntimeException("Error interno al generar pregunta", e);
         }
     }
-    
+
     /**
      * Simula una respuesta de OpenAI para pruebas.
      */
-    private RespuestaGeneracion simularRespuestaOpenAi() {
+    @Override
+    public RespuestaGeneracion simularRespuesta() {
         log.debug("Generando respuesta simulada");
         
         return new RespuestaGeneracion(

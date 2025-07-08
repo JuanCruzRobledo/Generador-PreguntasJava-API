@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.Environment;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,6 +39,8 @@ class PreguntaServiceTest {
     private PromptBuilderService promptBuilderService;
     
     private PreguntaService preguntaService;
+
+    private Environment environment;
     
     @BeforeEach
     void setUp() {
@@ -45,7 +48,8 @@ class PreguntaServiceTest {
             preguntaRepositoryPort,
             tematicaRepositoryPort,
             generadorDePreguntaServicePort,
-            promptBuilderService
+            promptBuilderService,
+            environment
         );
     }
     /*

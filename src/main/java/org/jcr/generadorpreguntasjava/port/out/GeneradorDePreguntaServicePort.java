@@ -28,4 +28,5 @@ public interface GeneradorDePreguntaServicePort {
      * @throws RuntimeException si hay errores en la comunicación con el servicio
      */
     RespuestaGeneracion generarPregunta(String prompt);
+    RespuestaGeneracion simularRespuesta();
 }

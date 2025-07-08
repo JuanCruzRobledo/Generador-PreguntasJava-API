@@ -41,7 +41,7 @@ public class GeminiClientAdapter implements GeneradorDePreguntaServicePort {
             // Si la API key es de prueba, simular respuesta
             if (geminiConfig.getKey().equals("test-key")) {
                 log.info("Usando simulación de Gemini (API key de prueba)");
-                return simularRespuestaGemini();
+                return simularRespuesta();
             }
             
             // Construir request para Gemini
@@ -89,7 +89,8 @@ public class GeminiClientAdapter implements GeneradorDePreguntaServicePort {
     /**
      * Simula una respuesta de Gemini para pruebas.
      */
-    private RespuestaGeneracion simularRespuestaGemini() {
+    @Override
+    public RespuestaGeneracion simularRespuesta() {
         log.debug("Generando respuesta simulada de Gemini");
         
         return new RespuestaGeneracion(
