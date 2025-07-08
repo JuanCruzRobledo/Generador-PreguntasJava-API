@@ -13,6 +13,7 @@ import org.jcr.generadorpreguntasjava.port.out.PreguntaRepositoryPort;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -45,7 +46,10 @@ public class PreguntaJpaAdapter implements PreguntaRepositoryPort {
             // ✅ Asegurar que las temáticas estén gestionadas
             Set<TematicaEntity> tematicas = entity.getTematicas();
             if (tematicas != null && !tematicas.isEmpty()) {
-                Set<TematicaEntity> managedTematicas = tematicas.stream()
+                // Crear copia para evitar ConcurrentModificationException
+                Set<TematicaEntity> tematicasCopia = new HashSet<>(tematicas);
+
+                Set<TematicaEntity> managedTematicas = tematicasCopia.stream()
                         .map(t -> tematicaJpaRepository.findById(t.getId())
                                 .orElseThrow(() -> new IllegalArgumentException("Temática no encontrada con ID: " + t.getId())))
                         .collect(Collectors.toSet());
@@ -114,7 +118,7 @@ public class PreguntaJpaAdapter implements PreguntaRepositoryPort {
             
             // Segunda consulta: obtener las mismas preguntas con temáticas
             List<PreguntaEntity> preguntasConTematicas = springDataRepository.findWithTematicas(preguntasConOpciones);
-            
+
             // Combinar los resultados manualmente
             List<PreguntaEntity> preguntasCompletas = combinarPreguntasConDetalles(preguntasConOpciones, preguntasConTematicas);
             

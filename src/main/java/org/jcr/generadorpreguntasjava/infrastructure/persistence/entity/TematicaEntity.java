@@ -33,4 +33,17 @@ public class TematicaEntity {
     
     @ManyToMany(mappedBy = "tematicas", fetch = FetchType.LAZY)
     private Set<PreguntaEntity> preguntas;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TematicaEntity)) return false;
+        TematicaEntity that = (TematicaEntity) o;
+        return id != null && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

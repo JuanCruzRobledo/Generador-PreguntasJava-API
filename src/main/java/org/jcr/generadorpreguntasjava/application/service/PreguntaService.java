@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jcr.generadorpreguntasjava.domain.model.*;
 import org.jcr.generadorpreguntasjava.port.in.*;
 import org.jcr.generadorpreguntasjava.port.out.*;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,59 +32,78 @@ public class PreguntaService implements GenerarPreguntaPort, ValidarRespuestaPor
     private final TematicaRepositoryPort tematicaRepositoryPort;
     private final GeneradorDePreguntaServicePort generadorDePreguntaServicePort;
     private final PromptBuilderService promptBuilderService;
-    
+
     @Override
     public Pregunta generarPregunta(Dificultad dificultad, List<String> tematicasDeseadas, List<String> tematicasYaUtilizadas) {
-        log.info("Iniciando generación de pregunta con dificultad: {} y temáticas deseadas: {}",
-                dificultad, tematicasDeseadas);
+        log.info("Iniciando generación de pregunta con dificultad: {} y temáticas deseadas: {}", dificultad, tematicasDeseadas);
 
-        try {
-            // 1. Convertir dificultad a string en minúscula para el prompt
-            String dificultadStr = (dificultad != null) ? dificultad.name().toLowerCase() : null;
+        int maxIntentos = 3; // Cantidad máxima de intentos para generar una pregunta válida
 
-            // 2. Construir el prompt con dificultad, temáticas deseadas y temáticas ya utilizadas
-            String promptCompleto = promptBuilderService.construirPromptCompleto(
-                    dificultadStr,
-                    tematicasDeseadas,
-                    tematicasYaUtilizadas
-            );
+        for (int intento = 1; intento <= maxIntentos; intento++) {
+            try {
+                // 1. Convertir dificultad a string en minúscula para el prompt
+                String dificultadStr = (dificultad != null) ? dificultad.name().toLowerCase() : null;
 
-            // 3. Enviar el prompt al servicio generador de preguntas (ej: IA externa)
-            log.debug("Enviando prompt al servicio de generación");
-            GeneradorDePreguntaServicePort.RespuestaGeneracion respuesta =
-                    generadorDePreguntaServicePort.generarPregunta(promptCompleto);
+                // 2. Construir el prompt con dificultad, temáticas deseadas y temáticas ya utilizadas
+                String promptCompleto = promptBuilderService.construirPromptCompleto(
+                        dificultadStr,
+                        tematicasDeseadas,
+                        tematicasYaUtilizadas
+                );
 
-            // 4. Mapear la respuesta a una entidad del dominio (Pregunta)
-            Pregunta pregunta = construirPreguntaDesdeLaRespuesta(respuesta);
+                log.debug("Intento {}: Enviando prompt al servicio de generación", intento);
 
-            // 5. Validar la estructura de la pregunta generada (opciones, campos obligatorios, etc.)
-            pregunta.validar();
-            log.debug("Pregunta generada es válida");
+                // 3. Enviar el prompt al servicio generador de preguntas (ej: IA externa)
+                GeneradorDePreguntaServicePort.RespuestaGeneracion respuesta =
+                        generadorDePreguntaServicePort.generarPregunta(promptCompleto);
 
-            // 🔄 6. Persistir las temáticas (crear nuevas o actualizar existentes si ya existen)
-            List<Tematica> tematicasPersistidas = persistirTematicas(pregunta.tematicas());
+                // 4. Mapear la respuesta a una entidad del dominio (Pregunta)
+                Pregunta pregunta = construirPreguntaDesdeLaRespuesta(respuesta);
 
-            // 7. Crear una nueva instancia de Pregunta con las temáticas persistidas
-            Pregunta preguntaConTematicas = new Pregunta(
-                    pregunta.codigoJava(),
-                    pregunta.enunciado(),
-                    pregunta.dificultad(),
-                    pregunta.respuestaCorrecta(),
-                    pregunta.explicacion(),
-                    pregunta.opciones(),
-                    tematicasPersistidas
-            );
+                // 5. Validar la estructura de la pregunta generada (opciones, campos obligatorios, etc.)
+                // Aquí puede lanzar IllegalArgumentException si no es válida
+                pregunta.validar();
+                log.debug("Pregunta generada es válida");
 
-            // 8. Persistir la nueva pregunta con las temáticas correctas asociadas
-            Pregunta preguntaGuardada = preguntaRepositoryPort.guardar(preguntaConTematicas);
+                // 6. Persistir las temáticas (crear nuevas o actualizar existentes si ya existen)
+                List<Tematica> tematicasPersistidas = persistirTematicas(pregunta.tematicas());
 
-            log.info("Pregunta generada y guardada exitosamente con ID: {}", preguntaGuardada.id());
-            return preguntaGuardada;
+                // 7. Crear una nueva instancia de Pregunta con las temáticas persistidas
+                Pregunta preguntaConTematicas = new Pregunta(
+                        pregunta.codigoJava(),
+                        pregunta.enunciado(),
+                        pregunta.dificultad(),
+                        pregunta.respuestaCorrecta(),
+                        pregunta.explicacion(),
+                        pregunta.opciones(),
+                        tematicasPersistidas
+                );
 
-        } catch (Exception e) {
-            log.error("Error al generar pregunta: {}", e.getMessage(), e);
-            throw new RuntimeException("Error al generar pregunta: " + e.getMessage(), e);
+                // 8. Persistir la nueva pregunta con las temáticas correctas asociadas
+                Pregunta preguntaGuardada = preguntaRepositoryPort.guardar(preguntaConTematicas);
+
+                log.info("Pregunta generada y guardada exitosamente con ID: {}", preguntaGuardada.id());
+                return preguntaGuardada;
+
+            } catch (IllegalArgumentException e) {
+                // Si la validación falla, intentamos de nuevo hasta maxIntentos
+                log.warn("Intento {} falló validación: {}", intento, e.getMessage());
+
+                if (intento == maxIntentos) {
+                    // Si ya agotamos los intentos, lanzamos la excepción para que el front la reciba
+                    log.error("Se agotaron los intentos de generación sin éxito");
+                    throw new RuntimeException("No se pudo generar una pregunta válida tras " + maxIntentos + " intentos", e);
+                }
+                // Si no es el último intento, seguimos intentando sin lanzar error
+            } catch (Exception e) {
+                // Cualquier otro error (no de validación) se propaga inmediatamente
+                log.error("Error al generar pregunta: {}", e.getMessage(), e);
+                throw new RuntimeException("Error al generar pregunta: " + e.getMessage(), e);
+            }
         }
+
+        // Esto nunca debería alcanzarse, pero queda como fallback
+        throw new RuntimeException("Error inesperado en la generación de pregunta");
     }
     
     @Override
@@ -215,34 +235,38 @@ public class PreguntaService implements GenerarPreguntaPort, ValidarRespuestaPor
     /**
      * Persiste una temática individual.
      */
-    private Tematica persistirTematica(Tematica tematica) {
-        if (tematica == null || tematica.nombre() == null || tematica.nombre().isBlank()) {
-            throw new IllegalArgumentException("La temática no puede ser nula o vacía");
-        }
-
+    @Transactional
+    public Tematica persistirTematica(Tematica tematica) {
         String nombreNormalizado = tematica.nombre().toLowerCase();
-        Optional<Tematica> existente = tematicaRepositoryPort.buscarPorNombre(nombreNormalizado);
 
-        if (existente.isPresent()) {
-            Tematica existenteTematica = existente.get();
+        try {
+            Optional<Tematica> existente = tematicaRepositoryPort.buscarPorNombre(nombreNormalizado);
+            if (existente.isPresent()) {
+                return tematicaRepositoryPort.guardar(incrementarContador(existente.get()));
+            }
 
-            // Incrementar uso de temática existente
-            Tematica tematicaActualizada = new Tematica(
-                    existenteTematica.id(),
-                    existenteTematica.nombre(),
-                    existenteTematica.contadorUsos() + 1,
-                    LocalDateTime.now()
-            );
-
-            return tematicaRepositoryPort.guardar(tematicaActualizada);
-        } else {
-            // Crear nueva temática
-            Tematica nuevaTematica = new Tematica(
+            return tematicaRepositoryPort.guardar(new Tematica(
                     nombreNormalizado,
                     1,
                     LocalDateTime.now()
-            );
-            return tematicaRepositoryPort.guardar(nuevaTematica);
+            ));
+        } catch (DataIntegrityViolationException e) {
+            // Ocurre si otro thread insertó al mismo tiempo
+            log.warn("Temática '{}' fue insertada en paralelo, recuperando de DB...", nombreNormalizado);
+            return tematicaRepositoryPort.buscarPorNombre(nombreNormalizado)
+                    .orElseThrow(() -> new IllegalStateException("La temática fue insertada pero no puede recuperarse", e));
         }
+    }
+
+    /**
+     * Incrementar contador de Tematica.
+     */
+    private Tematica incrementarContador(Tematica existente) {
+        return new Tematica(
+                existente.id(),
+                existente.nombre(),
+                existente.contadorUsos() + 1,
+                LocalDateTime.now()
+        );
     }
 }

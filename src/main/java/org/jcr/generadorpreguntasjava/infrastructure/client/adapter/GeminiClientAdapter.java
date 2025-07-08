@@ -64,7 +64,7 @@ public class GeminiClientAdapter implements GeneradorDePreguntaServicePort {
                 .body(Mono.just(request), GeminiRequest.GenerateContentRequest.class)
                 .retrieve()
                 .bodyToMono(GeminiResponse.GenerateContentResponse.class)
-                .timeout(Duration.ofSeconds(30))
+                .timeout(Duration.ofSeconds(50))
                 .block();
             
             if (response == null || response.candidates().isEmpty()) {
