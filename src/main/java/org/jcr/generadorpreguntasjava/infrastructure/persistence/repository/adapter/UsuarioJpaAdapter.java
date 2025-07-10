@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jcr.generadorpreguntasjava.domain.model.Usuario;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.UsuarioEntity;
-import org.jcr.generadorpreguntasjava.infrastructure.persistence.mapper.PersistenceMapper;
+import org.jcr.generadorpreguntasjava.infrastructure.persistence.mapper.UsuarioPersistenceMapper;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.repository.jpa.SpringDataUsuarioRepository;
 import org.jcr.generadorpreguntasjava.port.out.UsuarioRepositoryPort;
 import org.springframework.stereotype.Repository;
@@ -24,7 +24,7 @@ import java.util.Optional;
 public class UsuarioJpaAdapter implements UsuarioRepositoryPort {
     
     private final SpringDataUsuarioRepository springDataRepository;
-    private final PersistenceMapper persistenceMapper;
+    private final UsuarioPersistenceMapper persistenceMapper;
     
     @Override
     public Usuario guardar(Usuario usuario) {

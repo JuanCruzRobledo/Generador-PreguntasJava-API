@@ -16,10 +16,7 @@ public record PreguntaResponse(
     String enunciado,
     
     String dificultad,
-    
-    //@JsonProperty("respuestaCorrecta")
-    //String respuestaCorrecta,
-    
+
     String explicacion,
     
     List<OpcionResponse> opciones,

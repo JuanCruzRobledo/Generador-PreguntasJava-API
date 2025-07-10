@@ -2,6 +2,7 @@ package org.jcr.generadorpreguntasjava.application.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jcr.generadorpreguntasjava.domain.model.Dificultad;
 import org.jcr.generadorpreguntasjava.domain.model.Tematica;
 import org.jcr.generadorpreguntasjava.domain.service.PromptTemplate;
 import org.jcr.generadorpreguntasjava.port.out.TematicaRepositoryPort;
@@ -20,6 +21,31 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class PromptBuilderService {
+
+    /**
+     * Construye un prompt para generar un examen completo.
+     *
+     * @param dificultad            Dificultad deseada
+     * @param cantidadPreguntas     Número de preguntas requeridas
+     * @param tematicasDeseadas     Temáticas preferidas
+     * @param tematicasExcluidas    Temáticas a evitar
+     * @return Prompt completo para generación de examen
+     */
+    public String construirPromptExamen(Dificultad dificultad, int cantidadPreguntas,
+                                        List<String> tematicasDeseadas, List<String> tematicasExcluidas) {
+        log.info("Construyendo prompt para examen con {} preguntas de dificultad {}",
+                cantidadPreguntas, dificultad);
+
+        String tematicasStr = construirListaTematicasDeseadas(tematicasDeseadas);
+        String excluidasStr = construirListaTematicasUsadas(tematicasExcluidas);
+
+        return PromptTemplate.construirPromptExamen(
+                dificultad.name().toLowerCase(),
+                cantidadPreguntas,
+                tematicasStr,
+                excluidasStr
+        );
+    }
 
     /**
      * Construye un prompt completo para enviar al generador de preguntas.

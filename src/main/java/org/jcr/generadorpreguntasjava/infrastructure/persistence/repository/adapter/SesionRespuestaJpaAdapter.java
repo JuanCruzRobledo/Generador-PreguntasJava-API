@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jcr.generadorpreguntasjava.domain.model.Dificultad;
 import org.jcr.generadorpreguntasjava.domain.model.SesionRespuesta;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.SesionRespuestaEntity;
-import org.jcr.generadorpreguntasjava.infrastructure.persistence.mapper.PersistenceMapper;
+import org.jcr.generadorpreguntasjava.infrastructure.persistence.mapper.SesionRespuestaPersistenceMapper;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.repository.jpa.SpringDataSesionRespuestaRepository;
 import org.jcr.generadorpreguntasjava.port.out.SesionRespuestaRepositoryPort;
 import org.springframework.data.domain.PageRequest;
@@ -27,7 +27,7 @@ import java.util.Optional;
 public class SesionRespuestaJpaAdapter implements SesionRespuestaRepositoryPort {
     
     private final SpringDataSesionRespuestaRepository springDataRepository;
-    private final PersistenceMapper persistenceMapper;
+    private final SesionRespuestaPersistenceMapper persistenceMapper;
     
     @Override
     public SesionRespuesta guardar(SesionRespuesta sesion) {

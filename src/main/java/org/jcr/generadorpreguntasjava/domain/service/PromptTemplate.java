@@ -44,6 +44,48 @@ public class PromptTemplate {
         
         IMPORTANTE: Responde ÚNICAMENTE con el JSON válido, sin texto adicional.
         """;
+
+    public static final String EXAMEN_PROMPT = """
+        Eres un experto en programación Java y educación. Tu tarea es generar un examen completo con {cantidadPreguntas} preguntas sobre Java.
+        
+        REQUISITOS:
+        1. Cada pregunta debe seguir el formato estándar (código, 4 opciones, explicación)
+        2. Variedad de temáticas: {tematicaDeseada}
+        3. Evitar: {tematicasExcluidas}
+        4. Dificultad general: {dificultad}
+        5. Distribuir temáticas equilibradamente
+        6. Incluir preguntas conceptuales y de código
+        
+        FORMATO DE RESPUESTA (JSON válido):
+        {
+          "titulo": "Título sugerido para el examen",
+          "descripcion": "Descripción breve del examen",
+          "preguntas": [
+            {
+              "codigoJava": "...",
+              "enunciado": "...",
+              "opciones": ["...", "...", "...", "..."],
+              "respuestaCorrecta": "...",
+              "explicacion": "...",
+              "tematicaPrincipal": "...",
+              "tematicaSecundaria": "...",
+              "dificultad": "..."
+            }
+            // ... repetir para cada pregunta
+          ]
+        }
+        
+        Responde ÚNICAMENTE con el JSON válido, sin texto adicional.
+        """;
+
+    public static String construirPromptExamen(String dificultad, int cantidadPreguntas,
+                                               String tematicaDeseada, String tematicasExcluidas) {
+        return EXAMEN_PROMPT
+                .replace("{dificultad}", dificultad)
+                .replace("{cantidadPreguntas}", String.valueOf(cantidadPreguntas))
+                .replace("{tematicaDeseada}", tematicaDeseada)
+                .replace("{tematicasExcluidas}", tematicasExcluidas);
+    }
     
     public static String construirPrompt(String dificultad, String tematicaDeseada, String tematicasUsadas) {
         return BASE_PROMPT

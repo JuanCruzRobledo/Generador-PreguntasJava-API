@@ -1,5 +1,8 @@
 package org.jcr.generadorpreguntasjava.domain.model;
 
+import org.jcr.generadorpreguntasjava.port.out.GeneradorDePreguntaServicePort;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -117,5 +120,39 @@ public record Pregunta(
         
         // Validar cada temática
         tematicas.forEach(Tematica::validar);
+    }
+
+    /**
+     * Construye una pregunta del dominio a partir de la respuesta del servicio externo.
+     */
+    public static Pregunta fromRespuestaGeneracion(GeneradorDePreguntaServicePort.RespuestaGeneracion respuesta) {
+        return new Pregunta(
+                respuesta.codigoJava(),
+                respuesta.enunciado(),
+                Dificultad.fromString(respuesta.dificultad()),
+                respuesta.respuestaCorrecta(),
+                respuesta.explicacion(),
+                Arrays.stream(respuesta.opciones()).map(Opcion::new).toList(),
+                List.of(
+                        new Tematica(respuesta.tematicaPrincipal()),
+                        new Tematica(respuesta.tematicaSecundaria())
+                )
+        );
+    }
+
+    /**
+     * Verifica que las temáticas no hayan sido utilizadas previamente en esta sesion de preguntas.
+     */
+    public void verificarTematicasNoUtilizadas(List<String> tematicasYaUtilizadas) {
+        if (tematicasYaUtilizadas.contains(this.getTematicaPrincipal().nombre())) {
+            throw new IllegalArgumentException("Temática principal ya utilizada");
+        }
+
+        this.getTematicasSecundarias().stream()
+                .filter(t -> tematicasYaUtilizadas.contains(t.nombre()))
+                .findFirst()
+                .ifPresent(t -> {
+                    throw new IllegalArgumentException("Temática secundaria ya utilizada: " + t.nombre());
+                });
     }
 }

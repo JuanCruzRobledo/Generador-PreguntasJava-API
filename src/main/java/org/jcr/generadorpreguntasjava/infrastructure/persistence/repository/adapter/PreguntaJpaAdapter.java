@@ -6,7 +6,7 @@ import org.jcr.generadorpreguntasjava.domain.model.Pregunta;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.OpcionEntity;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.PreguntaEntity;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.TematicaEntity;
-import org.jcr.generadorpreguntasjava.infrastructure.persistence.mapper.PersistenceMapper;
+import org.jcr.generadorpreguntasjava.infrastructure.persistence.mapper.PreguntaPersistenceMapper;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.repository.jpa.SpringDataPreguntaRepository;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.repository.jpa.SpringDataTematicaRepository;
 import org.jcr.generadorpreguntasjava.port.out.PreguntaRepositoryPort;
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 public class PreguntaJpaAdapter implements PreguntaRepositoryPort {
     
     private final SpringDataPreguntaRepository springDataRepository;
-    private final PersistenceMapper persistenceMapper;
+    private final PreguntaPersistenceMapper persistenceMapper;
     private final SpringDataTematicaRepository tematicaJpaRepository;
 
     @Override

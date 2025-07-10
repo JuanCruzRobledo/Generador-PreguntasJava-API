@@ -1,6 +1,5 @@
 package org.jcr.generadorpreguntasjava.port.in.web.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 
 /**
@@ -8,10 +7,8 @@ import jakarta.validation.constraints.NotNull;
  */
 public record ValidarRespuestaRequest(
     @NotNull
-    @JsonProperty("preguntaId")
     Long preguntaId,
     
     @NotNull
-    @JsonProperty("opcionSeleccionada")
     String opcionSeleccionada
 ) {}

@@ -4,12 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jcr.generadorpreguntasjava.domain.model.Tematica;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.TematicaEntity;
-import org.jcr.generadorpreguntasjava.infrastructure.persistence.mapper.PersistenceMapper;
+import org.jcr.generadorpreguntasjava.infrastructure.persistence.mapper.TematicaPersistenceMapper;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.repository.jpa.SpringDataTematicaRepository;
 import org.jcr.generadorpreguntasjava.port.out.TematicaRepositoryPort;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,7 +27,7 @@ import java.util.Optional;
 public class TematicaJpaAdapter implements TematicaRepositoryPort {
     
     private final SpringDataTematicaRepository springDataRepository;
-    private final PersistenceMapper persistenceMapper;
+    private final TematicaPersistenceMapper persistenceMapper;
     
     @Override
     public Tematica guardar(Tematica tematica) {
@@ -88,6 +90,35 @@ public class TematicaJpaAdapter implements TematicaRepositoryPort {
         } catch (Exception e) {
             log.error("Error al obtener todas las temáticas: {}", e.getMessage(), e);
             throw new RuntimeException("Error al obtener temáticas", e);
+        }
+    }
+
+    /**
+     * Persiste las temáticas, creando nuevas o actualizando existentes.
+     */
+    @Override
+    @Transactional
+    public Tematica persistirConIntegridad(Tematica tematica) {
+        String nombreNormalizado = Tematica.normalizarNombre(tematica.nombre());
+
+        try {
+            Optional<Tematica> existente = buscarPorNombre(nombreNormalizado);
+
+            if (existente.isPresent()) {
+                // Solo incrementa si ya existía
+                return guardar(existente.get().incrementarContador());
+            } else {
+                // Crea nueva con contador = 1
+                return guardar(new Tematica(
+                        nombreNormalizado,
+                        1, // Contador inicial
+                        LocalDateTime.now()
+                ));
+            }
+        } catch (DataIntegrityViolationException e) {
+            log.warn("Conflicto de concurrencia al guardar temática {}", nombreNormalizado, e);
+            return buscarPorNombre(nombreNormalizado)
+                    .orElseThrow(() -> new IllegalStateException("Error al recuperar temática post-conflicto", e));
         }
     }
 }

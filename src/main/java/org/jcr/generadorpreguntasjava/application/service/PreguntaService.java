@@ -66,7 +66,7 @@ public class PreguntaService implements GenerarPreguntaPort, ValidarRespuestaPor
                 }
 
                 // 4. Mapear la respuesta a una entidad del dominio (Pregunta)
-                Pregunta pregunta = construirPreguntaDesdeLaRespuesta(respuesta);
+                Pregunta pregunta = Pregunta.fromRespuestaGeneracion(respuesta);
 
                 // 5. Validar la estructura de la pregunta generada (opciones, campos obligatorios, etc.)
                 // Aquí puede lanzar IllegalArgumentException si no es válida
@@ -181,100 +181,13 @@ public class PreguntaService implements GenerarPreguntaPort, ValidarRespuestaPor
         log.info("Se encontraron {} temáticas", tematicas.size());
         return tematicas;
     }
-    
-    /**
-     * Construye una pregunta del dominio a partir de la respuesta del servicio externo.
-     */
-    private Pregunta construirPreguntaDesdeLaRespuesta(GeneradorDePreguntaServicePort.RespuestaGeneracion respuesta) {
-        // Convertir opciones
-        List<Opcion> opciones = Arrays.stream(respuesta.opciones())
-            .map(Opcion::new)
-            .toList();
-        
-        // Convertir dificultad
-        Dificultad dificultad = Dificultad.fromString(respuesta.dificultad());
-        
-        // Crear temáticas
-        List<Tematica> tematicas = List.of(
-            new Tematica(respuesta.tematicaPrincipal()),
-            new Tematica(respuesta.tematicaSecundaria())
-        );
-        
-        return new Pregunta(
-            respuesta.codigoJava(),
-            respuesta.enunciado(),
-            dificultad,
-            respuesta.respuestaCorrecta(),
-            respuesta.explicacion(),
-            opciones,
-            tematicas
-        );
-    }
-    
-    /**
-     * Verifica que las temáticas no hayan sido utilizadas previamente en esta sesion de preguntas.
-     */
-    private void verificarTematicasNoUtilizadas(
-            Tematica principal,
-            List<Tematica> secundarias,
-            List<String> tematicasYaUtilizadas
-    ) {
-        // Verifica solo si la temática principal está en la lista de ya utilizadas
-        if (principal != null && tematicasYaUtilizadas.contains(principal.nombre())) {
-            log.warn("La temática principal '{}' ya fue utilizada previamente en esta sesión", principal.nombre());
-        }
 
-        for (Tematica secundaria : secundarias) {
-            if (tematicasYaUtilizadas.contains(secundaria.nombre())) {
-                log.warn("La temática secundaria '{}' ya fue utilizada previamente en esta sesión", secundaria.nombre());
-            }
-        }
-    }
-    
     /**
      * Persiste las temáticas, creando nuevas o actualizando existentes.
      */
     private List<Tematica> persistirTematicas(List<Tematica> tematicas) {
         return tematicas.stream()
-            .map(this::persistirTematica)
-            .toList();
-    }
-    
-    /**
-     * Persiste una temática individual.
-     */
-    @Transactional
-    public Tematica persistirTematica(Tematica tematica) {
-        String nombreNormalizado = tematica.nombre().toLowerCase();
-
-        try {
-            Optional<Tematica> existente = tematicaRepositoryPort.buscarPorNombre(nombreNormalizado);
-            if (existente.isPresent()) {
-                return tematicaRepositoryPort.guardar(incrementarContador(existente.get()));
-            }
-
-            return tematicaRepositoryPort.guardar(new Tematica(
-                    nombreNormalizado,
-                    1,
-                    LocalDateTime.now()
-            ));
-        } catch (DataIntegrityViolationException e) {
-            // Ocurre si otro thread insertó al mismo tiempo
-            log.warn("Temática '{}' fue insertada en paralelo, recuperando de DB...", nombreNormalizado);
-            return tematicaRepositoryPort.buscarPorNombre(nombreNormalizado)
-                    .orElseThrow(() -> new IllegalStateException("La temática fue insertada pero no puede recuperarse", e));
-        }
-    }
-
-    /**
-     * Incrementar contador de Tematica.
-     */
-    private Tematica incrementarContador(Tematica existente) {
-        return new Tematica(
-                existente.id(),
-                existente.nombre(),
-                existente.contadorUsos() + 1,
-                LocalDateTime.now()
-        );
+                .map(tematicaRepositoryPort::persistirConIntegridad)
+                .toList();
     }
 }

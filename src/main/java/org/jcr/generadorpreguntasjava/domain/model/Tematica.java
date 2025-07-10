@@ -55,7 +55,7 @@ public record Tematica(
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre de la temática no puede estar vacío");
         }
-        
+
         String nombreNormalizado = Normalizer.normalize(nombre.trim(), Normalizer.Form.NFD);
         nombreNormalizado = nombreNormalizado.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
         return nombreNormalizado.toLowerCase();
@@ -72,5 +72,17 @@ public record Tematica(
         if (contadorUsos < 0) {
             throw new IllegalArgumentException("El contador de usos no puede ser negativo");
         }
+    }
+
+    /**
+     * Incrementar contador de la temática.
+     */
+    public Tematica incrementarContador() {
+        return new Tematica(
+                this.id(),
+                this.nombre(),
+                this.contadorUsos() + 1,
+                LocalDateTime.now()
+        );
     }
 }

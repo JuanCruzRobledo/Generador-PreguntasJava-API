@@ -106,7 +106,17 @@ public class OpenAiClientAdapter implements GeneradorDePreguntaServicePort {
             "facil"
         );
     }
-    
+
+    @Override
+    public RespuestaExamen generarExamenCompleto(String prompt) {
+        return null;
+    }
+
+    @Override
+    public RespuestaExamen simularRespuestaExamen() {
+        return null;
+    }
+
     /**
      * Parsea la respuesta JSON de OpenAI.
      */

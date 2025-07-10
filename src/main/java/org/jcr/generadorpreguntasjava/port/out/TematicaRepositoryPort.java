@@ -33,5 +33,7 @@ public interface TematicaRepositoryPort {
      * @return Lista de todas las temáticas
      */
     List<Tematica> obtenerTodas();
+
+    Tematica persistirConIntegridad(Tematica tematica);
     
 }

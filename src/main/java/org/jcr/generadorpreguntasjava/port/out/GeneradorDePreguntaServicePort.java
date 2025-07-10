@@ -1,5 +1,7 @@
 package org.jcr.generadorpreguntasjava.port.out;
 
+import java.util.List;
+
 /**
  * Puerto de salida para el servicio de generación de preguntas.
  * Define el contrato para generar preguntas usando servicios externos (ej: OpenAI).
@@ -19,6 +21,12 @@ public interface GeneradorDePreguntaServicePort {
         String tematicaSecundaria,
         String dificultad
     ) {}
+
+    record RespuestaExamen(
+            String titulo,
+            String descripcion,
+            List<RespuestaGeneracion> preguntas
+    ) {}
     
     /**
      * Genera una pregunta usando un prompt personalizado.
@@ -29,4 +37,10 @@ public interface GeneradorDePreguntaServicePort {
      */
     RespuestaGeneracion generarPregunta(String prompt);
     RespuestaGeneracion simularRespuesta();
+
+    // Nuevo método para exámenes
+    RespuestaExamen generarExamenCompleto(String prompt);
+
+    // Para testing
+    RespuestaExamen simularRespuestaExamen();
 }
