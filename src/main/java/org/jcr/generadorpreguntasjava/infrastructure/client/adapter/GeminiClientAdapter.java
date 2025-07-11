@@ -108,7 +108,7 @@ public class GeminiClientAdapter implements GeneradorDePreguntaServicePort {
             new String[]{"8", "9", "10", "11"},
             "10",
             "El método length() de String retorna la cantidad de caracteres. 'Hola Mundo' tiene 10 caracteres incluyendo el espacio.",
-            "strings",
+            new String[]{"Concatenacion", "operadores logicos"},
             "metodos-string",
             "facil"
         );
@@ -130,12 +130,11 @@ public class GeminiClientAdapter implements GeneradorDePreguntaServicePort {
             JsonNode rootNode = objectMapper.readTree(jsonLimpio);
             
             // Extraer campos del JSON
-            String codigoJava = rootNode.get("codigoJava").asText();
+            String codigoFuente = rootNode.get("codigoFuente").asText();
             String enunciado = rootNode.get("enunciado").asText();
             String respuestaCorrecta = rootNode.get("respuestaCorrecta").asText();
             String explicacion = rootNode.get("explicacion").asText();
-            String tematicaPrincipal = rootNode.get("tematicaPrincipal").asText();
-            String tematicaSecundaria = rootNode.get("tematicaSecundaria").asText();
+            String categoriaPrincipal = rootNode.get("categoriaPrincipal").asText();
             String dificultad = rootNode.get("dificultad").asText();
             
             // Extraer opciones
@@ -144,12 +143,18 @@ public class GeminiClientAdapter implements GeneradorDePreguntaServicePort {
             for (int i = 0; i < opcionesNode.size(); i++) {
                 opciones[i] = opcionesNode.get(i).asText();
             }
-            
+
+            //Extraer tags
+            JsonNode tematicasNode = rootNode.get("tagsTematicas");
+            String[] tematica = new String[tematicasNode.size()];
+            for (int i = 0; i < tematicasNode.size(); i++) {
+                tematica[i] = tematicasNode.get(i).asText();
+            }
             log.debug("JSON de Gemini parseado exitosamente");
             
             return new RespuestaGeneracion(
-                codigoJava, enunciado, opciones, respuestaCorrecta,
-                explicacion, tematicaPrincipal, tematicaSecundaria, dificultad
+                    codigoFuente, enunciado, opciones, respuestaCorrecta,
+                explicacion, tematica, categoriaPrincipal, dificultad
             );
             
         } catch (JsonProcessingException e) {
@@ -233,7 +238,7 @@ public class GeminiClientAdapter implements GeneradorDePreguntaServicePort {
                         new String[]{"10", "15", "5", "Error de compilación"},
                         "15",
                         "El programa imprime la suma de a y b: 5 + 10 = 15.",
-                        "operadores",
+                        new String[]{"Concatenacion", "operadores logicos"},
                         "aritméticos",
                         "facil"
                 ),
@@ -250,7 +255,7 @@ public class GeminiClientAdapter implements GeneradorDePreguntaServicePort {
                         new String[]{"JAVA", "java", "Error", "null"},
                         "JAVA",
                         "El método toUpperCase() convierte el texto a mayúsculas.",
-                        "strings",
+                        new String[]{"Concatenacion", "operadores logicos"},
                         "metodos-string",
                         "facil"
                 )
@@ -285,12 +290,11 @@ public class GeminiClientAdapter implements GeneradorDePreguntaServicePort {
             JsonNode preguntasNode = rootNode.get("preguntas");
 
             for (JsonNode preguntaNode : preguntasNode) {
-                String codigoJava = preguntaNode.get("codigoJava").asText();
+                String codigoJava = preguntaNode.get("codigoFuente").asText();
                 String enunciado = preguntaNode.get("enunciado").asText();
                 String respuestaCorrecta = preguntaNode.get("respuestaCorrecta").asText();
                 String explicacion = preguntaNode.get("explicacion").asText();
-                String tematicaPrincipal = preguntaNode.get("tematicaPrincipal").asText();
-                String tematicaSecundaria = preguntaNode.get("tematicaSecundaria").asText();
+                String categoriaPrincipal = preguntaNode.get("categoriaPrincipal").asText();
                 String dificultad = preguntaNode.get("dificultad").asText();
 
                 // Extraer opciones
@@ -300,9 +304,16 @@ public class GeminiClientAdapter implements GeneradorDePreguntaServicePort {
                     opciones[i] = opcionesNode.get(i).asText();
                 }
 
+                //Extraer tags
+                JsonNode tematicasNode = rootNode.get("tagsTematicas");
+                String[] tematica = new String[tematicasNode.size()];
+                for (int i = 0; i < tematicasNode.size(); i++) {
+                    tematica[i] = tematicasNode.get(i).asText();
+                }
+
                 preguntas.add(new RespuestaGeneracion(
                         codigoJava, enunciado, opciones, respuestaCorrecta,
-                        explicacion, tematicaPrincipal, tematicaSecundaria, dificultad
+                        explicacion, tematica, categoriaPrincipal, dificultad
                 ));
             }
 

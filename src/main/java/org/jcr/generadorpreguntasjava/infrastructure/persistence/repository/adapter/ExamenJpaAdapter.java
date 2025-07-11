@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jcr.generadorpreguntasjava.domain.model.Examen;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.ExamenEntity;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.PreguntaEntity;
-import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.TematicaEntity;
+import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.TagTematicaEntity;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.mapper.ExamenPersistenceMapper;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.repository.jpa.SpringDataExamenRepository;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.repository.jpa.SpringDataPreguntaRepository;
@@ -44,9 +44,9 @@ public class ExamenJpaAdapter implements ExamenRepositoryPort {
             ExamenEntity entity = persistenceMapper.toEntity(examen);
 
             // 2️⃣ Asegurar que las temáticas estén gestionadas
-            Set<TematicaEntity> tematicas = entity.getTematicas();
+            Set<TagTematicaEntity> tematicas = entity.getTematicas();
             if (tematicas != null && !tematicas.isEmpty()) {
-                Set<TematicaEntity> managedTematicas = tematicas.stream()
+                Set<TagTematicaEntity> managedTematicas = tematicas.stream()
                         .map(t -> tematicaJpaRepository.findById(t.getId())
                                 .orElseThrow(() -> new IllegalArgumentException("Temática no encontrada con ID: " + t.getId())))
                         .collect(Collectors.toSet());

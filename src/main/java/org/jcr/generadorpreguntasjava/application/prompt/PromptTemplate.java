@@ -42,7 +42,7 @@ public class PromptTemplate {
       "respuestaCorrecta": "Debe coincidir exactamente con una de las opciones listadas.",
       "opciones": ["Opción A", "Opción B", "Opción C", "Opción D"],
       "explicacion": "Explicación centrada en el análisis paso a paso del código hasta llegar al resultado.",
-      "tematicaPrincipal": "Nombre exacto de la temática principal del ejercicio.",
+      "tagTematicaPrincipal": "Nombre exacto de la temática principal del ejercicio.",
       "tematicaSecundaria": "Nombre exacto de la temática secundaria del ejercicio o 'ninguna' si no aplica.",
       "dificultad": "{dificultad}"
     }

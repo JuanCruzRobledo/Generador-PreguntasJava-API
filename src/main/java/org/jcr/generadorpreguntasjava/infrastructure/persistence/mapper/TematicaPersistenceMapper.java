@@ -1,7 +1,7 @@
 package org.jcr.generadorpreguntasjava.infrastructure.persistence.mapper;
 
-import org.jcr.generadorpreguntasjava.domain.model.Tematica;
-import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.TematicaEntity;
+import org.jcr.generadorpreguntasjava.domain.model.TagTematica;
+import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.TagTematicaEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -12,10 +12,10 @@ public interface TematicaPersistenceMapper {
     // === MAPPING DE TEMATICA ===
 
 
-    Tematica toDomain(TematicaEntity entity);
+    TagTematica toDomain(TagTematicaEntity entity);
 
     @Mapping(target = "preguntas", ignore = true)
-    TematicaEntity toEntity(Tematica domain);
+    TagTematicaEntity toEntity(TagTematica domain);
 
-    List<Tematica> toDomainTematicaList(List<TematicaEntity> entities);
+    List<TagTematica> toDomainTematicaList(List<TagTematicaEntity> entities);
 }

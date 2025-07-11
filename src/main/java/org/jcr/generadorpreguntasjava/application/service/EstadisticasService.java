@@ -414,8 +414,8 @@ public class EstadisticasService implements
         // Obtener la temática principal de la pregunta asociada a la sesión
         return preguntaRepositoryPort.buscarPorId(sesion.preguntaId())
             .map(pregunta -> {
-                Tematica tematicaPrincipal = pregunta.getTematicaPrincipal();
-                return tematicaPrincipal != null ? tematicaPrincipal.nombre() : "Sin temática";
+                TagTematica tagTematicaPrincipal = pregunta.getTematicaPrincipal();
+                return tagTematicaPrincipal != null ? tagTematicaPrincipal.nombre() : "Sin temática";
             })
             .orElse("Sin temática");
     }

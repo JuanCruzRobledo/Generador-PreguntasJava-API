@@ -13,13 +13,14 @@ import java.util.Objects;
  */
 public record Pregunta(
     Long id,
-    String codigoJava,
+    String codigoFuente,
     String enunciado,
     Dificultad dificultad,
     String respuestaCorrecta,
     String explicacion,
     List<Opcion> opciones,
-    List<Tematica> tematicas
+    List<TagTematica> tagsTematicas,
+    CategoriaTematica categoriaPrincipal
 ) {
     
     /**
@@ -27,18 +28,18 @@ public record Pregunta(
      */
     public Pregunta(String codigoJava, String enunciado, Dificultad dificultad, 
                    String respuestaCorrecta, String explicacion, 
-                   List<Opcion> opciones, List<Tematica> tematicas) {
+                   List<Opcion> opciones, List<TagTematica> tagTematicas) {
         this(null, codigoJava, enunciado, dificultad, respuestaCorrecta, 
-             explicacion, opciones, tematicas);
+             explicacion, opciones, tagTematicas,null);
     }
     
     /**
      * Crea una copia de la pregunta con un nuevo ID.
      */
     public Pregunta withId(Long nuevoId) {
-        return new Pregunta(nuevoId, this.codigoJava, this.enunciado, 
+        return new Pregunta(nuevoId, this.codigoFuente, this.enunciado,
                            this.dificultad, this.respuestaCorrecta, 
-                           this.explicacion, this.opciones, this.tematicas);
+                           this.explicacion, this.opciones, this.tagsTematicas, this.categoriaPrincipal);
     }
     
     /**
@@ -54,28 +55,28 @@ public record Pregunta(
     /**
      * Obtiene la temática principal (primera en la lista).
      */
-    public Tematica getTematicaPrincipal() {
-        if (tematicas == null || tematicas.isEmpty()) {
+    public TagTematica getTematicaPrincipal() {
+        if (tagsTematicas == null || tagsTematicas.isEmpty()) {
             return null;
         }
-        return tematicas.get(0);
+        return tagsTematicas.get(0);
     }
     
     /**
      * Obtiene las temáticas secundarias (todas excepto la primera).
      */
-    public List<Tematica> getTematicasSecundarias() {
-        if (tematicas == null || tematicas.size() <= 1) {
+    public List<TagTematica> getTematicasSecundarias() {
+        if (tagsTematicas == null || tagsTematicas.size() <= 1) {
             return List.of();
         }
-        return tematicas.subList(1, tematicas.size());
+        return tagsTematicas.subList(1, tagsTematicas.size());
     }
     
     /**
      * Validación completa de la pregunta.
      */
     public void validar() {
-        if (codigoJava == null || codigoJava.trim().isEmpty()) {
+        if (codigoFuente == null || codigoFuente.trim().isEmpty()) {
             throw new IllegalArgumentException("El código Java no puede estar vacío");
         }
         
@@ -103,7 +104,7 @@ public record Pregunta(
             throw new IllegalArgumentException("Debe haber exactamente 4 opciones");
         }
         
-        if (tematicas == null || tematicas.isEmpty()) {
+        if (tagsTematicas == null || tagsTematicas.isEmpty()) {
             throw new IllegalArgumentException("Debe haber al menos una temática");
         }
         
@@ -119,7 +120,7 @@ public record Pregunta(
         opciones.forEach(Opcion::validar);
         
         // Validar cada temática
-        tematicas.forEach(Tematica::validar);
+        tagsTematicas.forEach(TagTematica::validar);
     }
 
     /**
@@ -127,16 +128,13 @@ public record Pregunta(
      */
     public static Pregunta fromRespuestaGeneracion(GeneradorDePreguntaServicePort.RespuestaGeneracion respuesta) {
         return new Pregunta(
-                respuesta.codigoJava(),
+                respuesta.codigoFuente(),
                 respuesta.enunciado(),
                 Dificultad.fromString(respuesta.dificultad()),
                 respuesta.respuestaCorrecta(),
                 respuesta.explicacion(),
                 Arrays.stream(respuesta.opciones()).map(Opcion::new).toList(),
-                List.of(
-                        new Tematica(respuesta.tematicaPrincipal()),
-                        new Tematica(respuesta.tematicaSecundaria())
-                )
+                Arrays.stream(respuesta.tagsTematicas()).map(TagTematica::new).toList()
         );
     }
 

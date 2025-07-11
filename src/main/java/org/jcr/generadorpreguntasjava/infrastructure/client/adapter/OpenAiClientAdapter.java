@@ -101,7 +101,7 @@ public class OpenAiClientAdapter implements GeneradorDePreguntaServicePort {
             new String[]{"10", "15", "20", "25"},
             "15",
             "El código suma todos los elementos del array [1, 2, 3, 4, 5]. La suma es 1+2+3+4+5 = 15.",
-            "arrays",
+            new String[]{""},
             "bucles-for",
             "facil"
         );
@@ -133,11 +133,11 @@ public class OpenAiClientAdapter implements GeneradorDePreguntaServicePort {
             JsonNode rootNode = objectMapper.readTree(jsonLimpio);
             
             // Extraer campos del JSON
-            String codigoJava = rootNode.get("codigoJava").asText();
+            String codigoJava = rootNode.get("codigoFuente").asText();
             String enunciado = rootNode.get("enunciado").asText();
             String respuestaCorrecta = rootNode.get("respuestaCorrecta").asText();
             String explicacion = rootNode.get("explicacion").asText();
-            String tematicaPrincipal = rootNode.get("tematicaPrincipal").asText();
+            String tematicaPrincipal = rootNode.get("tagsTematicas").asText();
             String tematicaSecundaria = rootNode.get("tematicaSecundaria").asText();
             String dificultad = rootNode.get("dificultad").asText();
             
@@ -147,12 +147,19 @@ public class OpenAiClientAdapter implements GeneradorDePreguntaServicePort {
             for (int i = 0; i < opcionesNode.size(); i++) {
                 opciones[i] = opcionesNode.get(i).asText();
             }
+
+            // Extraer tags
+            JsonNode tagNode = rootNode.get("opciones");
+            String[] tags = new String[tagNode.size()];
+            for (int i = 0; i < tagNode.size(); i++) {
+                tags[i] = tagNode.get(i).asText();
+            }
             
             log.debug("JSON parseado exitosamente");
             
             return new RespuestaGeneracion(
                 codigoJava, enunciado, opciones, respuestaCorrecta,
-                explicacion, tematicaPrincipal, tematicaSecundaria, dificultad
+                explicacion, tags, tematicaSecundaria, dificultad
             );
             
         } catch (JsonProcessingException e) {

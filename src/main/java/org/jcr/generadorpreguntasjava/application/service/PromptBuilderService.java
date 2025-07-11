@@ -3,9 +3,7 @@ package org.jcr.generadorpreguntasjava.application.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jcr.generadorpreguntasjava.domain.model.Dificultad;
-import org.jcr.generadorpreguntasjava.domain.model.Tematica;
 import org.jcr.generadorpreguntasjava.domain.service.PromptTemplate;
-import org.jcr.generadorpreguntasjava.port.out.TematicaRepositoryPort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -51,22 +49,23 @@ public class PromptBuilderService {
      * Construye un prompt completo para enviar al generador de preguntas.
      *
      * @param dificultad            Dificultad deseada (puede ser null)
-     * @param tematicasDeseadas     Lista de temáticas sobre las cuales generar preguntas
-     * @param tematicasYaUtilizadas Lista de temáticas que ya se usaron y deben evitarse
+     * @param categoriaPrincipal    Categoria la cual se generan las preguntas (POO,...)
+     * @param tagsDeseados     Lista de temáticas sobre las cuales generar preguntas
+     * @param tagsYaUtilizadas Lista de temáticas que ya se usaron y deben evitarse
      * @return Prompt completo en formato texto
      */
-    public String construirPromptCompleto(String dificultad, List<String> tematicasDeseadas, List<String> tematicasYaUtilizadas) {
-        log.info("Construyendo prompt para dificultad: {}, temáticas deseadas: {}, excluyendo: {}",
-                dificultad, tematicasDeseadas, tematicasYaUtilizadas);
+    public String construirPromptCompleto(String dificultad, String lenguaje, String categoriaPrincipal, List<String> tagsDeseados, List<String> tagsYaUtilizadas) {
+        log.info("Construyendo prompt para dificultad: {}, categoria principal: {}, tags deseadas: {}, excluyendo: {}",
+                dificultad, categoriaPrincipal,  tagsDeseados, tagsYaUtilizadas);
 
         // Construye las cadenas de texto para insertar en el prompt
-        String tematicasUsadas = construirListaTematicasUsadas(tematicasYaUtilizadas);
-        String tematicasDeseadasStr = construirListaTematicasDeseadas(tematicasDeseadas);
+        String tagsUsadosStr = construirListaTematicasUsadas(tagsYaUtilizadas);
+        String tagsDeseadosStr = construirListaTematicasDeseadas(tagsDeseados);
 
-        log.debug("Temáticas utilizadas encontradas: {}", tematicasUsadas);
+        log.debug("Temáticas utilizadas encontradas: {}", tagsYaUtilizadas);
 
         // Llamada al template que arma el texto final
-        String promptCompleto = PromptTemplate.construirPrompt(dificultad, tematicasDeseadasStr, tematicasUsadas);
+        String promptCompleto = PromptTemplate.construirPrompt(dificultad, lenguaje, categoriaPrincipal, tagsDeseadosStr, tagsUsadosStr);
 
         log.debug("Prompt construido exitosamente");
         return promptCompleto;

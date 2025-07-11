@@ -1,7 +1,7 @@
 package org.jcr.generadorpreguntasjava.port.in;
 
 import org.jcr.generadorpreguntasjava.domain.model.Pregunta;
-import org.jcr.generadorpreguntasjava.domain.model.Tematica;
+import org.jcr.generadorpreguntasjava.domain.model.TagTematica;
 
 import java.util.List;
 
@@ -26,11 +26,5 @@ public interface ConsultarPreguntasPort {
      * @throws IllegalArgumentException si el nombre de la temática no es válido
      */
     List<Pregunta> obtenerPreguntasPorTematica(String nombreTematica);
-    
-    /**
-     * Obtiene todas las temáticas disponibles con su información de uso.
-     * 
-     * @return Lista de todas las temáticas
-     */
-    List<Tematica> obtenerTodasLasTematicas();
+
 }

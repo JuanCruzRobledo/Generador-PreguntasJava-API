@@ -1,7 +1,5 @@
 package org.jcr.generadorpreguntasjava.port.in.web.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 
 /**
@@ -9,17 +7,10 @@ import java.util.List;
  */
 public record PreguntaResponse(
     Long id,
-    
-    @JsonProperty("codigoJava")
-    String codigoJava,
-    
+    String codigoFuente,
     String enunciado,
-    
     String dificultad,
-
     String explicacion,
-    
     List<OpcionResponse> opciones,
-    
-    List<TematicaResponse> tematicas
+    List<TematicaResponse> tagsTematicas
 ) {}

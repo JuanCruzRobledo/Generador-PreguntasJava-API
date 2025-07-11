@@ -12,13 +12,13 @@ public interface GeneradorDePreguntaServicePort {
      * Respuesta del servicio de generación de preguntas.
      */
     record RespuestaGeneracion(
-        String codigoJava,
+        String codigoFuente,
         String enunciado,
         String[] opciones,
         String respuestaCorrecta,
         String explicacion,
-        String tematicaPrincipal,
-        String tematicaSecundaria,
+        String[] tagsTematicas,
+        String categoriaPrincipal,
         String dificultad
     ) {}
 

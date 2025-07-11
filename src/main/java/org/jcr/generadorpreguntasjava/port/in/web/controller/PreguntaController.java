@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jcr.generadorpreguntasjava.application.mapper.PreguntaMapper;
 import org.jcr.generadorpreguntasjava.domain.model.Pregunta;
-import org.jcr.generadorpreguntasjava.domain.model.Tematica;
 import org.jcr.generadorpreguntasjava.port.in.*;
 import org.jcr.generadorpreguntasjava.port.in.web.dto.request.*;
 import org.jcr.generadorpreguntasjava.port.in.web.dto.response.*;
@@ -12,7 +11,6 @@ import org.jcr.generadorpreguntasjava.shared.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
 import java.util.List;
 
 /**
@@ -45,11 +43,14 @@ public class PreguntaController {
         try {
             // Mapear request a parámetros del dominio
             var dificultad = request != null ? preguntaMapper.mapDificultad(request) : null;
-            List<String> tematicasDeseadas = request != null ? request.tematicasDeseadas() : List.of();
-            List<String> tematicasYaUtilizadas = request != null ? request.tematicasYaUtilizadas() : List.of();
+
+            String categoriaPrincipal = request != null ? request.categoriaPrincipal() : null;
+            String lenguajeProgramacion = request != null ? request.lenguaje() : null;
+            List<String> tematicasDeseadas = request != null ? request.tagsTematicas() : List.of();
+            List<String> tematicasYaUtilizadas = request != null ? request.tagsYaUtilizados() : List.of();
             
             // Generar pregunta
-            Pregunta preguntaGenerada = generarPreguntaPort.generarPregunta(dificultad, tematicasDeseadas, tematicasYaUtilizadas);
+            Pregunta preguntaGenerada = generarPreguntaPort.generarPregunta(dificultad,lenguajeProgramacion,categoriaPrincipal, tematicasDeseadas, tematicasYaUtilizadas);
             
             // Mapear a DTO de respuesta
             PreguntaResponse response = preguntaMapper.toResponse(preguntaGenerada);
@@ -64,17 +65,6 @@ public class PreguntaController {
             log.error("Error al generar pregunta: {}", e.getMessage(), e);
             return ApiResponse.error("Error interno al generar pregunta", e.getMessage());
         }
-    }
-    
-    /**
-     * Alternativa para generar pregunta con POST /preguntas.
-     * 
-     * POST /api/v1/preguntas
-     */
-    @PostMapping("/preguntas")
-    @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<PreguntaResponse> generarPreguntaAlternativo(@RequestBody(required = false) GenerarPreguntaRequest request) {
-        return generarPregunta(request);
     }
     
     /**
@@ -160,28 +150,6 @@ public class PreguntaController {
         } catch (Exception e) {
             log.error("Error al obtener preguntas por temática: {}", e.getMessage(), e);
             return ApiResponse.error("Error interno al obtener preguntas por temática", e.getMessage());
-        }
-    }
-    
-    /**
-     * Obtiene todas las temáticas disponibles.
-     * 
-     * GET /api/v1/tematicas
-     */
-    @GetMapping("/tematicas")
-    public ApiResponse<List<TematicaResponse>> obtenerTodasLasTematicas() {
-        log.info("Solicitud para obtener todas las temáticas");
-        
-        try {
-            List<Tematica> tematicas = consultarPreguntasPort.obtenerTodasLasTematicas();
-            List<TematicaResponse> response = preguntaMapper.toTematicaResponseList(tematicas);
-            
-            log.info("Se retornaron {} temáticas", tematicas.size());
-            return ApiResponse.exito(response, String.format("Se encontraron %d temáticas", tematicas.size()));
-            
-        } catch (Exception e) {
-            log.error("Error al obtener temáticas: {}", e.getMessage(), e);
-            return ApiResponse.error("Error interno al obtener temáticas", e.getMessage());
         }
     }
 }

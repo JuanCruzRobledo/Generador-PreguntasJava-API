@@ -16,16 +16,16 @@ public record Examen(
         Dificultad dificultadPromedio,
         LocalDateTime fechaCreacion,
         List<Pregunta> preguntas,
-        List<Tematica> tematicas
+        List<TagTematica> tagTematicas
 ) {
 
     /**
      * Constructor para crear un nuevo examen sin ID (para persistir).
      */
     public Examen(String titulo, String descripcion, Dificultad dificultadPromedio,
-                  List<Pregunta> preguntas, List<Tematica> tematicas) {
+                  List<Pregunta> preguntas, List<TagTematica> tagTematicas) {
         this(null, titulo, descripcion, dificultadPromedio, LocalDateTime.now(),
-                preguntas, tematicas);
+                preguntas, tagTematicas);
     }
 
     /**
@@ -33,7 +33,7 @@ public record Examen(
      */
     public Examen withId(Long nuevoId) {
         return new Examen(nuevoId, this.titulo, this.descripcion, this.dificultadPromedio,
-                this.fechaCreacion, this.preguntas, this.tematicas);
+                this.fechaCreacion, this.preguntas, this.tagTematicas);
     }
 
     /**
@@ -46,14 +46,14 @@ public record Examen(
     /**
      * Obtiene la temática principal (la más frecuente en las preguntas).
      */
-    public Tematica getTematicaPrincipal() {
-        if (tematicas == null || tematicas.isEmpty()) {
+    public TagTematica getTematicaPrincipal() {
+        if (tagTematicas == null || tagTematicas.isEmpty()) {
             return null;
         }
 
-        return tematicas.stream()
-                .max(Comparator.comparingInt(t -> Collections.frequency(tematicas, t)))
-                .orElse(tematicas.get(0));
+        return tagTematicas.stream()
+                .max(Comparator.comparingInt(t -> Collections.frequency(tagTematicas, t)))
+                .orElse(tagTematicas.get(0));
     }
 
     /**
@@ -80,7 +80,7 @@ public record Examen(
             throw new IllegalArgumentException("El examen debe contener al menos una pregunta");
         }
 
-        if (tematicas == null || tematicas.isEmpty()) {
+        if (tagTematicas == null || tagTematicas.isEmpty()) {
             throw new IllegalArgumentException("El examen debe tener al menos una temática");
         }
 
@@ -88,11 +88,11 @@ public record Examen(
         preguntas.forEach(Pregunta::validar);
 
         // Validar que las temáticas sean consistentes con las preguntas
-        Set<Tematica> tematicasEnPreguntas = preguntas.stream()
-                .flatMap(p -> p.tematicas().stream())
+        Set<TagTematica> tematicasEnPreguntas = preguntas.stream()
+                .flatMap(p -> p.tagsTematicas().stream())
                 .collect(Collectors.toSet());
 
-        if (!tematicasEnPreguntas.containsAll(tematicas)) {
+        if (!tematicasEnPreguntas.containsAll(tagTematicas)) {
             throw new IllegalArgumentException("Las temáticas del examen deben coincidir con las de las preguntas");
         }
 
@@ -141,9 +141,9 @@ public record Examen(
                 conteoPorDificultad.getOrDefault(Dificultad.FACIL, 0L),
                 conteoPorDificultad.getOrDefault(Dificultad.MEDIA, 0L),
                 conteoPorDificultad.getOrDefault(Dificultad.DIFICIL, 0L),
-                tematicas.stream()
+                tagTematicas.stream()
                         .limit(3)
-                        .map(Tematica::nombre)
+                        .map(TagTematica::nombre)
                         .collect(Collectors.joining(", "))
         );
     }

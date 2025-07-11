@@ -1,9 +1,10 @@
 package org.jcr.generadorpreguntasjava.infrastructure.persistence.repository.adapter;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jcr.generadorpreguntasjava.domain.model.Tematica;
-import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.TematicaEntity;
+import org.jcr.generadorpreguntasjava.domain.model.TagTematica;
+import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.TagTematicaEntity;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.mapper.TematicaPersistenceMapper;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.repository.jpa.SpringDataTematicaRepository;
 import org.jcr.generadorpreguntasjava.port.out.TematicaRepositoryPort;
@@ -30,44 +31,44 @@ public class TematicaJpaAdapter implements TematicaRepositoryPort {
     private final TematicaPersistenceMapper persistenceMapper;
     
     @Override
-    public Tematica guardar(Tematica tematica) {
-        log.debug("Guardando temática: {}", tematica.nombre());
+    public TagTematica guardar(TagTematica tagTematica) {
+        log.debug("Guardando temática: {}", tagTematica.nombre());
         
         try {
             // Convertir a entidad JPA
-            TematicaEntity entity = persistenceMapper.toEntity(tematica);
+            TagTematicaEntity entity = persistenceMapper.toEntity(tagTematica);
             
             // Guardar usando Spring Data JPA
-            TematicaEntity savedEntity = springDataRepository.save(entity);
+            TagTematicaEntity savedEntity = springDataRepository.save(entity);
             
             // Convertir de vuelta a dominio
-            Tematica savedTematica = persistenceMapper.toDomain(savedEntity);
+            TagTematica savedTagTematica = persistenceMapper.toDomain(savedEntity);
             
             log.debug("Temática guardada exitosamente con ID: {}", savedEntity.getId());
-            return savedTematica;
+            return savedTagTematica;
             
         } catch (Exception e) {
-            log.error("Error al guardar temática '{}': {}", tematica.nombre(), e.getMessage(), e);
+            log.error("Error al guardar temática '{}': {}", tagTematica.nombre(), e.getMessage(), e);
             throw new RuntimeException("Error al guardar temática", e);
         }
     }
     
     @Override
     @Transactional(readOnly = true)
-    public Optional<Tematica> buscarPorNombre(String nombre) {
+    public Optional<TagTematica> buscarPorNombre(String nombre) {
         log.debug("Buscando temática por nombre: {}", nombre);
         
         try {
-            Optional<TematicaEntity> entityOpt = springDataRepository.findByNombre(nombre);
+            Optional<TagTematicaEntity> entityOpt = springDataRepository.findByNombre(nombre);
             
             if (entityOpt.isEmpty()) {
                 log.debug("No se encontró temática con nombre: {}", nombre);
                 return Optional.empty();
             }
             
-            Tematica tematica = persistenceMapper.toDomain(entityOpt.get());
+            TagTematica tagTematica = persistenceMapper.toDomain(entityOpt.get());
             log.debug("Temática encontrada con nombre: {}", nombre);
-            return Optional.of(tematica);
+            return Optional.of(tagTematica);
             
         } catch (Exception e) {
             log.error("Error al buscar temática por nombre '{}': {}", nombre, e.getMessage(), e);
@@ -77,16 +78,33 @@ public class TematicaJpaAdapter implements TematicaRepositoryPort {
     
     @Override
     @Transactional(readOnly = true)
-    public List<Tematica> obtenerTodas() {
+    public List<TagTematica> obtenerTodas() {
         log.debug("Obteniendo todas las temáticas");
         
         try {
-            List<TematicaEntity> entities = springDataRepository.findAll();
-            List<Tematica> tematicas = persistenceMapper.toDomainTematicaList(entities);
+            List<TagTematicaEntity> entities = springDataRepository.findAll();
+            List<TagTematica> tagTematicas = persistenceMapper.toDomainTematicaList(entities);
             
-            log.debug("Se obtuvieron {} temáticas", tematicas.size());
-            return tematicas;
+            log.debug("Se obtuvieron {} temáticas", tagTematicas.size());
+            return tagTematicas;
             
+        } catch (Exception e) {
+            log.error("Error al obtener todas las temáticas: {}", e.getMessage(), e);
+            throw new RuntimeException("Error al obtener temáticas", e);
+        }
+    }
+
+    @Override
+    public List<TagTematica> obtenerTodosDeCategoria(Long id) {
+        log.debug("Obteniendo todas las temáticas");
+
+        try {
+            List<TagTematicaEntity> entities = springDataRepository.findTagsByCategoriaId(id).orElseThrow(()-> new EntityNotFoundException("No se encontro la tags"));
+            List<TagTematica> tagTematicas = persistenceMapper.toDomainTematicaList(entities);
+
+            log.debug("Se obtuvieron {} temáticas", tagTematicas.size());
+            return tagTematicas;
+
         } catch (Exception e) {
             log.error("Error al obtener todas las temáticas: {}", e.getMessage(), e);
             throw new RuntimeException("Error al obtener temáticas", e);
@@ -98,18 +116,18 @@ public class TematicaJpaAdapter implements TematicaRepositoryPort {
      */
     @Override
     @Transactional
-    public Tematica persistirConIntegridad(Tematica tematica) {
-        String nombreNormalizado = Tematica.normalizarNombre(tematica.nombre());
+    public TagTematica persistirConIntegridad(TagTematica tagTematica) {
+        String nombreNormalizado = TagTematica.normalizarNombre(tagTematica.nombre());
 
         try {
-            Optional<Tematica> existente = buscarPorNombre(nombreNormalizado);
+            Optional<TagTematica> existente = buscarPorNombre(nombreNormalizado);
 
             if (existente.isPresent()) {
                 // Solo incrementa si ya existía
                 return guardar(existente.get().incrementarContador());
             } else {
                 // Crea nueva con contador = 1
-                return guardar(new Tematica(
+                return guardar(new TagTematica(
                         nombreNormalizado,
                         1, // Contador inicial
                         LocalDateTime.now()

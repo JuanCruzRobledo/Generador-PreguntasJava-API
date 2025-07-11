@@ -7,6 +7,8 @@ import java.util.List;
  */
 public record GenerarPreguntaRequest(
     String dificultad,
-    List<String> tematicasDeseadas,
-    List<String> tematicasYaUtilizadas
+    String lenguaje,
+    List<String> tagsTematicas,
+    List<String> tagsYaUtilizados,
+    String categoriaPrincipal
 ) {}

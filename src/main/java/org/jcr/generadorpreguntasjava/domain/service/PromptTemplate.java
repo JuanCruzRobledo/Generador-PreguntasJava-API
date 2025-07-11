@@ -6,47 +6,57 @@ package org.jcr.generadorpreguntasjava.domain.service;
  * Clase del dominio que encapsula la lógica de construcción de prompts.
  */
 public class PromptTemplate {
-    
+
     public static final String BASE_PROMPT = """
-        Eres un experto en programación Java y educación. Tu tarea es generar una pregunta de opción múltiple sobre código Java secuencial.
+        Eres un experto en enseñanza de programación en {lenguaje}. Tu tarea es generar una **pregunta de opción múltiple** basada en código, clara, técnica y alineada con objetivos educativos.
         
-        INSTRUCCIONES IMPORTANTES:
-        1. El código debe ser autocontenido y ejecutable
-        2. Debe ser sobre Java secuencial (sin hilos, async, etc.)
-        3. La pregunta debe tener exactamente 4 opciones de respuesta
-        4. Solo una opción debe ser correcta
-        5. Incluye una explicación clara de por qué la respuesta es correcta
-        6. Las temáticas principales y secundarias deben ser conceptos específicos de Java
+        🧠 OBJETIVO:
+        Generar una pregunta sobre código en {lenguaje} con un enfoque didáctico, según la dificultad y categoría solicitada.
         
-        DIFICULTAD SOLICITADA: {dificultad}
+        📌 REQUISITOS:
+        1. El código debe ser autocontenido, ejecutable y representar correctamente el concepto central.
+        2. No utilices hilos, concurrencia ni estructuras avanzadas (a menos que lo pida la categoría).
+        3. La pregunta debe tener exactamente 4 opciones, solo UNA debe ser correcta.
+        4. La explicación debe ser clara, precisa y justificar la opción correcta en relación con el código.
+        5. La **categoría principal** es un eje temático amplio del lenguaje (por ejemplo: Fundamentos de Java, Programación Orientada a Objetos, Excepciones).
+        6. Los **tagsTematicas** deben representar los **conceptos específicos tratados por el ejercicio**, por ejemplo:
+           - Si la categoría es *Fundamentos de Java*: `suma de variables`, `concatenación`, `operadores lógicos`
+           - Si la categoría es *POO*: `herencia`, `polimorfismo`, `encapsulamiento`
+        7. **Evita repetir temas ya utilizados**, indicados en la sección "Temáticas ya utilizadas".
         
-        TEMÁTICA PREFERIDA: {tematicaDeseada}
+        🎯 PARÁMETROS DE ENTRADA:
+        - Lenguaje: {lenguaje}
+        - Dificultad: {dificultad} (fácil | media | difícil)
+        - Categoría principal: {categoriaPrincipal}
+        - Temáticas específicas deseadas: {tagsTematicas}
+        - Temáticas ya utilizadas (NO repetir): {tematicasUsadas}
         
-        TEMÁTICAS YA UTILIZADAS (NO REPETIR):
-        {tematicasUsadas}
-        
-        FORMATO DE RESPUESTA REQUERIDO (JSON válido):
+        📦 FORMATO DE RESPUESTA (JSON válido):
         {
-          "codigoJava": "código Java completo y ejecutable",
-          "enunciado": "pregunta clara sobre qué hace el código",
+          "codigoFuente": "Bloque de código {lenguaje}, completo y ejecutable",
+          "enunciado": "Pregunta clara sobre qué hace el código o cuál es el resultado",
           "opciones": [
             "Opción A",
-            "Opción B", 
+            "Opción B",
             "Opción C",
             "Opción D"
           ],
-          "respuestaCorrecta": "Opción correcta exacta",
-          "explicacion": "explicación detallada de por qué es correcta",
-          "tematicaPrincipal": "concepto principal (ej: arrays, bucles, etc.)",
-          "tematicaSecundaria": "concepto secundario (ej: indexación, condiciones, etc.)",
-          "dificultad": "facil|media|dificil"
+          "respuestaCorrecta": "Texto exacto de la opción correcta",
+          "explicacion": "Explicación detallada y didáctica de por qué esa opción es correcta",
+          "categoriaPrincipal": "Ej: Fundamentos de Java, POO, Excepciones",
+          "tagsTematicas": [
+            "suma de variables",
+            "operadores lógicos",
+            "concatenación"
+          ],
+          "dificultad": "facil | media | dificil"
         }
         
-        IMPORTANTE: Responde ÚNICAMENTE con el JSON válido, sin texto adicional.
+        🚫 IMPORTANTE: Responde ÚNICAMENTE con el JSON válido, sin texto adicional ni comentarios.
         """;
 
     public static final String EXAMEN_PROMPT = """
-        Eres un experto en programación Java y educación. Tu tarea es generar un examen completo con {cantidadPreguntas} preguntas sobre Java.
+        Eres un experto en programación {lenguaje} y educación. Tu tarea es generar un examen completo con {cantidadPreguntas} preguntas sobre {lenguaje}.
         
         REQUISITOS:
         1. Cada pregunta debe seguir el formato estándar (código, 4 opciones, explicación)
@@ -67,7 +77,7 @@ public class PromptTemplate {
               "opciones": ["...", "...", "...", "..."],
               "respuestaCorrecta": "...",
               "explicacion": "...",
-              "tematicaPrincipal": "...",
+              "tagTematicaPrincipal": "...",
               "tematicaSecundaria": "...",
               "dificultad": "..."
             }
@@ -86,11 +96,17 @@ public class PromptTemplate {
                 .replace("{tematicaDeseada}", tematicaDeseada)
                 .replace("{tematicasExcluidas}", tematicasExcluidas);
     }
-    
-    public static String construirPrompt(String dificultad, String tematicaDeseada, String tematicasUsadas) {
+
+    public static String construirPrompt(String dificultad, String lenguaje, String categoriaPrincipal, String tagsDeseadosStr, String tagsUsadosStr) {
         return BASE_PROMPT
-            .replace("{dificultad}", dificultad != null ? dificultad : "cualquiera")
-            .replace("{tematicaDeseada}", tematicaDeseada != null ? tematicaDeseada : "cualquiera")
-            .replace("{tematicasUsadas}", tematicasUsadas != null ? tematicasUsadas : "Ninguna");
+                .replace("{dificultad}", isNullOrEmpty(dificultad) ? "cualquiera" : dificultad)
+                .replace("{categoriaPrincipal}", isNullOrEmpty(categoriaPrincipal) ? "Fundamentos de Java" : categoriaPrincipal)
+                .replace("{lenguaje}", isNullOrEmpty(lenguaje) ? "Java" : lenguaje)
+                .replace("{tagsTematicas}", isNullOrEmpty(tagsDeseadosStr) ? "cualquier temática relacionada a " + (isNullOrEmpty(categoriaPrincipal) ? "Fundamentos de Java" : categoriaPrincipal) : tagsDeseadosStr)
+                .replace("{tematicasUsadas}", isNullOrEmpty(tagsUsadosStr) ? "ninguna temática aún utilizada" : tagsUsadosStr);
+    }
+
+    private static boolean isNullOrEmpty(String s) {
+        return s == null || s.trim().isEmpty();
     }
 }

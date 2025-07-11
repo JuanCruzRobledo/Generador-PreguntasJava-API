@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jcr.generadorpreguntasjava.domain.model.Pregunta;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.OpcionEntity;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.PreguntaEntity;
-import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.TematicaEntity;
+import org.jcr.generadorpreguntasjava.infrastructure.persistence.entity.TagTematicaEntity;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.mapper.PreguntaPersistenceMapper;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.repository.jpa.SpringDataPreguntaRepository;
 import org.jcr.generadorpreguntasjava.infrastructure.persistence.repository.jpa.SpringDataTematicaRepository;
@@ -44,17 +44,17 @@ public class PreguntaJpaAdapter implements PreguntaRepositoryPort {
             PreguntaEntity entity = persistenceMapper.toEntity(pregunta);
 
             // ✅ Asegurar que las temáticas estén gestionadas
-            Set<TematicaEntity> tematicas = entity.getTematicas();
+            Set<TagTematicaEntity> tematicas = entity.getTagsTematicas();
             if (tematicas != null && !tematicas.isEmpty()) {
                 // Crear copia para evitar ConcurrentModificationException
-                Set<TematicaEntity> tematicasCopia = new HashSet<>(tematicas);
+                Set<TagTematicaEntity> tematicasCopia = new HashSet<>(tematicas);
 
-                Set<TematicaEntity> managedTematicas = tematicasCopia.stream()
+                Set<TagTematicaEntity> managedTematicas = tematicasCopia.stream()
                         .map(t -> tematicaJpaRepository.findById(t.getId())
                                 .orElseThrow(() -> new IllegalArgumentException("Temática no encontrada con ID: " + t.getId())))
                         .collect(Collectors.toSet());
 
-                entity.setTematicas(managedTematicas);
+                entity.setTagsTematicas(managedTematicas);
             }
 
             // Establecer relaciones bidireccionales para opciones
@@ -140,14 +140,14 @@ public class PreguntaJpaAdapter implements PreguntaRepositoryPort {
                                                              List<PreguntaEntity> preguntasConTematicas) {
         // Crear un mapa de las preguntas con temáticas por ID para búsqueda rápida
         var tematicasPorId = preguntasConTematicas.stream()
-                .collect(Collectors.toMap(PreguntaEntity::getId, p -> p.getTematicas()));
+                .collect(Collectors.toMap(PreguntaEntity::getId, p -> p.getTagsTematicas()));
         
         // Asignar las temáticas a las preguntas que ya tienen opciones
         return preguntasConOpciones.stream()
                 .peek(p -> {
-                    Set<TematicaEntity> tematicas = tematicasPorId.get(p.getId());
+                    Set<TagTematicaEntity> tematicas = tematicasPorId.get(p.getId());
                     if (tematicas != null) {
-                        p.setTematicas(tematicas);
+                        p.setTagsTematicas(tematicas);
                     }
                 })
                 .toList();

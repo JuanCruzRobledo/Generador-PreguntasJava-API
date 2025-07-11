@@ -44,7 +44,7 @@ public class ExamenEntity {
             joinColumns = @JoinColumn(name = "examen_id"),
             inverseJoinColumns = @JoinColumn(name = "tematica_id")
     )
-    private Set<TematicaEntity> tematicas;
+    private Set<TagTematicaEntity> tematicas;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(

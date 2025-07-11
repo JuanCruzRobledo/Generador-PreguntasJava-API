@@ -6,11 +6,9 @@ import org.jcr.generadorpreguntasjava.domain.model.*;
 import org.jcr.generadorpreguntasjava.port.in.*;
 import org.jcr.generadorpreguntasjava.port.out.*;
 import org.springframework.core.env.Environment;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -30,14 +28,14 @@ import java.util.Optional;
 public class PreguntaService implements GenerarPreguntaPort, ValidarRespuestaPort, ConsultarPreguntasPort {
     
     private final PreguntaRepositoryPort preguntaRepositoryPort;
-    private final TematicaRepositoryPort tematicaRepositoryPort;
     private final GeneradorDePreguntaServicePort generadorDePreguntaServicePort;
     private final PromptBuilderService promptBuilderService;
+    private final TematicaRepositoryPort tematicaRepositoryPort;
     private final Environment environment;
 
     @Override
-    public Pregunta generarPregunta(Dificultad dificultad, List<String> tematicasDeseadas, List<String> tematicasYaUtilizadas) {
-        log.info("Iniciando generación de pregunta con dificultad: {} y temáticas deseadas: {}", dificultad, tematicasDeseadas);
+    public Pregunta generarPregunta(Dificultad dificultad, String lenguaje,String categoriaPrincipal, List<String> tagsTematicas, List<String> tagsYaUtilizadas) {
+        log.info("Iniciando generación de pregunta con dificultad: {} y temáticas deseadas: {}", dificultad, tagsTematicas);
 
         int maxIntentos = 3; // Cantidad máxima de intentos para generar una pregunta válida
 
@@ -49,8 +47,10 @@ public class PreguntaService implements GenerarPreguntaPort, ValidarRespuestaPor
                 // 2. Construir el prompt con dificultad, temáticas deseadas y temáticas ya utilizadas
                 String promptCompleto = promptBuilderService.construirPromptCompleto(
                         dificultadStr,
-                        tematicasDeseadas,
-                        tematicasYaUtilizadas
+                        lenguaje,
+                        categoriaPrincipal,
+                        tagsTematicas,
+                        tagsYaUtilizadas
                 );
 
                 log.debug("Intento {}: Enviando prompt al servicio de generación", intento);
@@ -74,11 +74,11 @@ public class PreguntaService implements GenerarPreguntaPort, ValidarRespuestaPor
                 log.debug("Pregunta generada es válida");
 
                 // 6. Persistir las temáticas (crear nuevas o actualizar existentes si ya existen)
-                List<Tematica> tematicasPersistidas = persistirTematicas(pregunta.tematicas());
+                List<TagTematica> tematicasPersistidas = persistirTematicas(pregunta.tagsTematicas());
 
                 // 7. Crear una nueva instancia de Pregunta con las temáticas persistidas
                 Pregunta preguntaConTematicas = new Pregunta(
-                        pregunta.codigoJava(),
+                        pregunta.codigoFuente(),
                         pregunta.enunciado(),
                         pregunta.dificultad(),
                         pregunta.respuestaCorrecta(),
@@ -166,27 +166,19 @@ public class PreguntaService implements GenerarPreguntaPort, ValidarRespuestaPor
             throw new IllegalArgumentException("El nombre de la temática no puede estar vacío");
         }
         
-        String nombreNormalizado = Tematica.normalizarNombre(nombreTematica);
+        String nombreNormalizado = TagTematica.normalizarNombre(nombreTematica);
         List<Pregunta> preguntas = preguntaRepositoryPort.buscarPorTematica(nombreNormalizado);
         
         log.info("Se encontraron {} preguntas para la temática '{}'", preguntas.size(), nombreTematica);
         return preguntas;
     }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<Tematica> obtenerTodasLasTematicas() {
-        log.info("Obteniendo todas las temáticas");
-        List<Tematica> tematicas = tematicaRepositoryPort.obtenerTodas();
-        log.info("Se encontraron {} temáticas", tematicas.size());
-        return tematicas;
-    }
+
 
     /**
      * Persiste las temáticas, creando nuevas o actualizando existentes.
      */
-    private List<Tematica> persistirTematicas(List<Tematica> tematicas) {
-        return tematicas.stream()
+    private List<TagTematica> persistirTematicas(List<TagTematica> tagTematicas) {
+        return tagTematicas.stream()
                 .map(tematicaRepositoryPort::persistirConIntegridad)
                 .toList();
     }

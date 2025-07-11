@@ -56,7 +56,7 @@ public interface SpringDataSesionRespuestaRepository extends JpaRepository<Sesio
     /**
      * Obtiene sesiones de un usuario filtradas por temática.
      */
-    @Query("SELECT s FROM SesionRespuestaEntity s JOIN s.pregunta p JOIN p.tematicas t " +
+    @Query("SELECT s FROM SesionRespuestaEntity s JOIN s.pregunta p JOIN p.tagsTematicas t " +
            "WHERE s.usuarioId = :usuarioId AND t.nombre = :tematica " +
            "AND s.finRespuesta IS NOT NULL ORDER BY s.finRespuesta DESC")
     List<SesionRespuestaEntity> findByUsuarioIdAndTematica(@Param("usuarioId") Long usuarioId, 

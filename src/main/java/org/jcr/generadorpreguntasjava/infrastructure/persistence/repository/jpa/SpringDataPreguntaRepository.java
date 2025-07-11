@@ -18,7 +18,7 @@ public interface SpringDataPreguntaRepository extends JpaRepository<PreguntaEnti
      * Busca preguntas que contengan una temática específica.
      */
     @Query("SELECT DISTINCT p FROM PreguntaEntity p " +
-           "JOIN p.tematicas t " +
+           "JOIN p.tagsTematicas t " +
            "WHERE t.nombre = :nombreTematica")
     List<PreguntaEntity> findByTematicasNombre(@Param("nombreTematica") String nombreTematica);
     
@@ -31,7 +31,7 @@ public interface SpringDataPreguntaRepository extends JpaRepository<PreguntaEnti
     List<PreguntaEntity> findAllWithOpciones();
     
     @Query("SELECT DISTINCT p FROM PreguntaEntity p " +
-           "LEFT JOIN FETCH p.tematicas " +
+           "LEFT JOIN FETCH p.tagsTematicas " +
            "WHERE p IN :preguntas")
     List<PreguntaEntity> findWithTematicas(@Param("preguntas") List<PreguntaEntity> preguntas);
     
@@ -40,7 +40,7 @@ public interface SpringDataPreguntaRepository extends JpaRepository<PreguntaEnti
      */
     @Query("SELECT p FROM PreguntaEntity p " +
            "LEFT JOIN FETCH p.opciones " +
-           "LEFT JOIN FETCH p.tematicas " +
+           "LEFT JOIN FETCH p.tagsTematicas " +
            "WHERE p.id = :id")
     PreguntaEntity findByIdWithDetails(@Param("id") Long id);
 }

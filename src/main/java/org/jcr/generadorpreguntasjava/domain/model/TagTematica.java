@@ -8,7 +8,7 @@ import java.text.Normalizer;
  * 
  * Objeto inmutable del dominio - sin anotaciones de frameworks externos.
  */
-public record Tematica(
+public record TagTematica(
     Long id,
     String nombre,
     Integer contadorUsos,
@@ -18,29 +18,29 @@ public record Tematica(
     /**
      * Constructor para crear una nueva temática sin ID (para persistir).
      */
-    public Tematica(String nombre) {
+    public TagTematica(String nombre) {
         this(null, normalizarNombre(nombre), 0, null);
     }
     
     /**
      * Constructor para crear una nueva temática con contador inicial.
      */
-    public Tematica(String nombre, Integer contadorUsos, LocalDateTime timestampUltimoUso) {
+    public TagTematica(String nombre, Integer contadorUsos, LocalDateTime timestampUltimoUso) {
         this(null, normalizarNombre(nombre), contadorUsos, timestampUltimoUso);
     }
     
     /**
      * Crea una copia de la temática con un nuevo ID.
      */
-    public Tematica withId(Long nuevoId) {
-        return new Tematica(nuevoId, this.nombre, this.contadorUsos, this.timestampUltimoUso);
+    public TagTematica withId(Long nuevoId) {
+        return new TagTematica(nuevoId, this.nombre, this.contadorUsos, this.timestampUltimoUso);
     }
     
     /**
      * Incrementa el contador de usos y actualiza el timestamp.
      */
-    public Tematica incrementarUso() {
-        return new Tematica(
+    public TagTematica incrementarUso() {
+        return new TagTematica(
             this.id,
             this.nombre,
             this.contadorUsos + 1,
@@ -77,8 +77,8 @@ public record Tematica(
     /**
      * Incrementar contador de la temática.
      */
-    public Tematica incrementarContador() {
-        return new Tematica(
+    public TagTematica incrementarContador() {
+        return new TagTematica(
                 this.id(),
                 this.nombre(),
                 this.contadorUsos() + 1,

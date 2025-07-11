@@ -16,7 +16,7 @@ import java.util.HashMap;
 /**
  * Mapper para convertir entre entidades del dominio y DTOs.
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {OpcionMapper.class, TematicaMapper.class})
 public interface PreguntaMapper {
     
     // === MAPPING DE PREGUNTA ===
@@ -25,18 +25,7 @@ public interface PreguntaMapper {
     PreguntaResponse toResponse(Pregunta pregunta);
     
     List<PreguntaResponse> toResponseList(List<Pregunta> preguntas);
-    
-    // === MAPPING DE OPCION ===
-    
-    OpcionResponse toResponse(Opcion opcion);
-    
-    List<OpcionResponse> toOpcionResponseList(List<Opcion> opciones);
-    
-    // === MAPPING DE TEMATICA ===
-    
-    TematicaResponse toResponse(Tematica tematica);
-    
-    List<TematicaResponse> toTematicaResponseList(List<Tematica> tematicas);
+
     
     // === MAPPING DE VALIDACION ===
     

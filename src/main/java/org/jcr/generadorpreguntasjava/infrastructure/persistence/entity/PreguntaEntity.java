@@ -23,20 +23,20 @@ public class PreguntaEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "codigo_java", nullable = false, columnDefinition = "TEXT")
-    private String codigoJava;
+    @Column( nullable = false, columnDefinition = "TEXT")
+    private String codigoFuente;
     
-    @Column(name = "enunciado", nullable = false, columnDefinition = "TEXT")
+    @Column( nullable = false, columnDefinition = "TEXT")
     private String enunciado;
     
     @Enumerated(EnumType.STRING)
-    @Column(name = "dificultad", nullable = false)
+    @Column( nullable = false)
     private Dificultad dificultad;
     
-    @Column(name = "respuesta_correcta", nullable = false, length = 500)
+    @Column( nullable = false, length = 500)
     private String respuestaCorrecta;
     
-    @Column(name = "explicacion", nullable = false, columnDefinition = "TEXT")
+    @Column( nullable = false, columnDefinition = "TEXT")
     private String explicacion;
     
     @OneToMany(mappedBy = "pregunta", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
@@ -48,5 +48,13 @@ public class PreguntaEntity {
         joinColumns = @JoinColumn(name = "pregunta_id"),
         inverseJoinColumns = @JoinColumn(name = "tematica_id")
     )
-    private Set<TematicaEntity> tematicas;
+    private Set<TagTematicaEntity> tagsTematicas;
+
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private CategoriaTematicaEntity categoriaPrincipal;
+
+
+    @ManyToOne
+    @JoinColumn(name = "lenguaje_id")
+    private LenguajeEntity lenguaje;
 }

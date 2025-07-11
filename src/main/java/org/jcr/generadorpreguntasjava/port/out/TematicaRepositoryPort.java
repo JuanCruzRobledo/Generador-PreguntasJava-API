@@ -1,6 +1,6 @@
 package org.jcr.generadorpreguntasjava.port.out;
 
-import org.jcr.generadorpreguntasjava.domain.model.Tematica;
+import org.jcr.generadorpreguntasjava.domain.model.TagTematica;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,10 +14,10 @@ public interface TematicaRepositoryPort {
     /**
      * Guarda una temática en el repositorio.
      * 
-     * @param tematica Temática a guardar
+     * @param tagTematica Temática a guardar
      * @return Temática guardada con ID asignado
      */
-    Tematica guardar(Tematica tematica);
+    TagTematica guardar(TagTematica tagTematica);
     
     /**
      * Busca una temática por su nombre.
@@ -25,15 +25,22 @@ public interface TematicaRepositoryPort {
      * @param nombre Nombre normalizado de la temática
      * @return Optional con la temática si existe
      */
-    Optional<Tematica> buscarPorNombre(String nombre);
+    Optional<TagTematica> buscarPorNombre(String nombre);
     
     /**
      * Obtiene todas las temáticas.
      * 
      * @return Lista de todas las temáticas
      */
-    List<Tematica> obtenerTodas();
+    List<TagTematica> obtenerTodas();
 
-    Tematica persistirConIntegridad(Tematica tematica);
+    /**
+     * Obtiene todas las temáticas.
+     *
+     * @return Lista de todas las temáticas
+     */
+    List<TagTematica> obtenerTodosDeCategoria(Long id);
+
+    TagTematica persistirConIntegridad(TagTematica tagTematica);
     
 }

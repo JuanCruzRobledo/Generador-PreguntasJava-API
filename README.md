@@ -128,7 +128,7 @@ curl -X POST http://localhost:8080/api/v1/preguntas \
       {"letra": "D", "texto": "Error de compilación", "correcta": false}
     ],
     "explicacion": "El código suma todos los elementos del array [1,2,3,4,5]. La suma es 1+2+3+4+5 = 15.",
-    "tematicas": ["arrays", "bucles", "for-each"]
+    "tagTematicas": ["arrays", "bucles", "for-each"]
   },
   "timestamp": "2024-01-15T10:30:00"
 }
@@ -148,7 +148,7 @@ curl -X POST http://localhost:8080/api/v1/respuesta \
       "codigoJava": "...",
       "opciones": [...],
       "explicacion": "...",
-      "tematicas": [...]
+      "tagTematicas": [...]
     }
   }'
 ```
@@ -180,7 +180,7 @@ Accede a la consola web de H2 en: `http://localhost:8080/h2-console`
 ### Tabla temáticas
 
 ```sql
-SELECT * FROM tematicas ORDER BY fecha_creacion DESC;
+SELECT * FROM tagTematicas ORDER BY fecha_creacion DESC;
 ```
 
 ## 🧪 Testing

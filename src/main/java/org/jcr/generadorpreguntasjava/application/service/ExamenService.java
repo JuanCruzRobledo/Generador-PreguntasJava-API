@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jcr.generadorpreguntasjava.domain.model.Dificultad;
 import org.jcr.generadorpreguntasjava.domain.model.Examen;
 import org.jcr.generadorpreguntasjava.domain.model.Pregunta;
-import org.jcr.generadorpreguntasjava.domain.model.Tematica;
+import org.jcr.generadorpreguntasjava.domain.model.TagTematica;
 import org.jcr.generadorpreguntasjava.port.in.ConsultarExamenesPort;
 import org.jcr.generadorpreguntasjava.port.in.GenerarExamenPort;
 import org.jcr.generadorpreguntasjava.port.out.ExamenRepositoryPort;
@@ -62,7 +62,7 @@ public class ExamenService implements GenerarExamenPort, ConsultarExamenesPort {
                     .toList();
 
             // 4. Extraer y persistir las temáticas (crear nuevas o actualizar existentes)
-            List<Tematica> tematicasPersistidas = persistirTematicasExamen(preguntasGeneradas);
+            List<TagTematica> tematicasPersistidas = persistirTematicasExamen(preguntasGeneradas);
 
             // 5. Crear el objeto Examen del dominio
             Examen examen = new Examen(
@@ -96,9 +96,9 @@ public class ExamenService implements GenerarExamenPort, ConsultarExamenesPort {
     /**
      * Persiste todas las temáticas involucradas en el examen.
      */
-    private List<Tematica> persistirTematicasExamen(List<Pregunta> preguntas) {
+    private List<TagTematica> persistirTematicasExamen(List<Pregunta> preguntas) {
         return preguntas.stream()
-                .flatMap(p -> p.tematicas().stream())
+                .flatMap(p -> p.tagsTematicas().stream())
                 .distinct()
                 .map(tematicaRepositoryPort::persistirConIntegridad)
                 .toList();
