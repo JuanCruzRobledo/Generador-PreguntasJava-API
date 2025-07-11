@@ -32,11 +32,33 @@ public class CategoriaTematicaController {
      * GET /api/v1/categorias
      */
     @GetMapping("/categorias")
-    public ApiResponse<List<CategoriaTematicaResponse>> obtenerTodasLasTagsDeCategoria() {
+    public ApiResponse<List<CategoriaTematicaResponse>> obtenerTodasLasCategorias() {
         log.info("Solicitud para obtener todas las temáticas");
 
         try {
-            List<CategoriaTematica> categorias = consultarCategoriaTematicaPort.obtenerTodasLasCategoriasTematicas();
+            List<CategoriaTematica> categorias = consultarCategoriaTematicaPort.obtenerTodasLasCategorias();
+            List<CategoriaTematicaResponse> response = categoriaTematicaMapper.toCategoriaTematicaResponseList(categorias);
+
+            log.info("Se retornaron {} categorias", categorias.size());
+            return ApiResponse.exito(response, String.format("Se encontraron %d categorias", categorias.size()));
+
+        } catch (Exception e) {
+            log.error("Error al obtener temáticas: {}", e.getMessage(), e);
+            return ApiResponse.error("Error interno al obtener temáticas", e.getMessage());
+        }
+    }
+
+    /**
+     * Obtiene todos los tags de una categoria.
+     *
+     * GET /api/v1/categorias
+     */
+    @GetMapping("/lenguaje/{id}/categorias")
+    public ApiResponse<List<CategoriaTematicaResponse>> obtenerTodasLasCategoriasDeUnLenguaje(@PathVariable Long id) {
+        log.info("Solicitud para obtener todas las temáticas");
+
+        try {
+            List<CategoriaTematica> categorias = consultarCategoriaTematicaPort.obtenerTodasLasCategoriasDeUnLenguaje(id);
             List<CategoriaTematicaResponse> response = categoriaTematicaMapper.toCategoriaTematicaResponseList(categorias);
 
             log.info("Se retornaron {} categorias", categorias.size());

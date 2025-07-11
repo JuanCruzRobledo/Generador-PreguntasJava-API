@@ -15,5 +15,7 @@ public interface ConsultarCategoriaTematicaPort {
      *
      * @return Lista de todas las Categorias principales
      */
-    List<CategoriaTematica> obtenerTodasLasCategoriasTematicas();
+    List<CategoriaTematica> obtenerTodasLasCategorias();
+
+    List<CategoriaTematica> obtenerTodasLasCategoriasDeUnLenguaje(Long id);
 }

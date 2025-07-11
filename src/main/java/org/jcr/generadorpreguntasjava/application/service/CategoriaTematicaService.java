@@ -30,8 +30,14 @@ public class CategoriaTematicaService implements ConsultarCategoriaTematicaPort 
     private final CategoriaTematicaPersistenceMapper categoriaTematicaMapper;
 
     @Override
-    public List<CategoriaTematica> obtenerTodasLasCategoriasTematicas() {
+    public List<CategoriaTematica> obtenerTodasLasCategorias() {
         List<CategoriaTematicaEntity> listaCategoriasEntity = categoriaTematicaRepository.findAll();
+        return categoriaTematicaMapper.toDomainList(listaCategoriasEntity);
+    }
+
+    @Override
+    public List<CategoriaTematica> obtenerTodasLasCategoriasDeUnLenguaje(Long id) {
+        List<CategoriaTematicaEntity> listaCategoriasEntity = categoriaTematicaRepository.findByLenguajeId(id);
         return categoriaTematicaMapper.toDomainList(listaCategoriasEntity);
     }
 }
