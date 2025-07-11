@@ -53,7 +53,7 @@ public class TagTematicaController{
      *
      * GET /api/v1/tags
      */
-    @GetMapping("/{id}/tags")
+    @GetMapping("/categoria/{id}/tags")
     public ApiResponse<List<TematicaResponse>> obtenerTodasLasTagsDeCategoria(@PathVariable Long id) {
         log.info("Solicitud para obtener todas las temáticas");
 
