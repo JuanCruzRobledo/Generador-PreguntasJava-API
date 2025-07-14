@@ -15,13 +15,13 @@ public interface GenerarPreguntaPort {
      * Genera una nueva pregunta con los parámetros especificados.
      * 
      * @param dificultad Nivel de dificultad deseado (opcional)
-     * @param lenguaje Lenguaje de programacion (opcional)
-     * @param categoriaPrincipal  Categoria la cual se van a tratar las preguntas (POO, Estructural)
+     * @param lenguajeId Id del Lenguaje de programacion (opcional)
+     * @param categoriaId  Id de la Categoria la cual se van a tratar las preguntas (POO, Estructural)
      * @param tagsTematicas     Lista de temáticas sobre las cuales generar preguntas
      * @param tagsYaUtilizados Lista de temáticas que ya se usaron y deben evitarse
      * @return Pregunta generada y persistida
      * @throws IllegalArgumentException si los parámetros no son válidos
      * @throws RuntimeException si hay errores en la generación o persistencia
      */
-    Pregunta generarPregunta(Dificultad dificultad,String lenguaje, String categoriaPrincipal, List<String> tagsTematicas , List<String> tagsYaUtilizados);
+    Pregunta generarPregunta(Dificultad dificultad,Long lenguajeId, Long categoriaId, List<String> tagsTematicas , List<String> tagsYaUtilizados);
 }

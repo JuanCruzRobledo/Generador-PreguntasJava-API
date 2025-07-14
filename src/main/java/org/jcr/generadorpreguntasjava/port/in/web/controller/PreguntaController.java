@@ -44,8 +44,8 @@ public class PreguntaController {
             // Mapear request a parámetros del dominio
             var dificultad = request != null ? preguntaMapper.mapDificultad(request) : null;
 
-            String categoriaPrincipal = request != null ? request.categoriaPrincipal() : null;
-            String lenguajeProgramacion = request != null ? request.lenguaje() : null;
+            Long categoriaPrincipal = request != null ? request.categoriaId() : null;
+            Long lenguajeProgramacion = request != null ? request.lenguajeId() : null;
             List<String> tematicasDeseadas = request != null ? request.tagsTematicas() : List.of();
             List<String> tematicasYaUtilizadas = request != null ? request.tagsYaUtilizados() : List.of();
             

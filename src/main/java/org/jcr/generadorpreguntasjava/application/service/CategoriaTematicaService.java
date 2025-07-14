@@ -1,5 +1,6 @@
 package org.jcr.generadorpreguntasjava.application.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jcr.generadorpreguntasjava.domain.model.CategoriaTematica;
@@ -39,5 +40,11 @@ public class CategoriaTematicaService implements ConsultarCategoriaTematicaPort 
     public List<CategoriaTematica> obtenerTodasLasCategoriasDeUnLenguaje(Long id) {
         List<CategoriaTematicaEntity> listaCategoriasEntity = categoriaTematicaRepository.findByLenguajeId(id);
         return categoriaTematicaMapper.toDomainList(listaCategoriasEntity);
+    }
+
+    @Override
+    public CategoriaTematica obtenerPorId(Long id) {
+        CategoriaTematicaEntity categoriaTematica = categoriaTematicaRepository.findById(id).orElseThrow(()->new EntityNotFoundException("Categoria no encontrada"));
+        return categoriaTematicaMapper.toDomain(categoriaTematica);
     }
 }

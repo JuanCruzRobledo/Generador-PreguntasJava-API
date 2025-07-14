@@ -19,4 +19,6 @@ public interface LenguajeRepositoryPort {
     Lenguaje guardar(Lenguaje pregunta);
 
     List<Lenguaje> obtenerLenguajes();
+
+    Lenguaje obtenerLenguaje(Long id);
 }

@@ -2,6 +2,7 @@ package org.jcr.generadorpreguntasjava.application.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jcr.generadorpreguntasjava.application.mapper.PreguntaMapper;
 import org.jcr.generadorpreguntasjava.domain.model.*;
 import org.jcr.generadorpreguntasjava.port.in.*;
 import org.jcr.generadorpreguntasjava.port.out.*;
@@ -32,9 +33,11 @@ public class PreguntaService implements GenerarPreguntaPort, ValidarRespuestaPor
     private final PromptBuilderService promptBuilderService;
     private final TematicaRepositoryPort tematicaRepositoryPort;
     private final Environment environment;
+    private final ConsultarLenguajesPort consultarLenguajesPort;
+    private final ConsultarCategoriaTematicaPort consultarCategoriaTematicaPort;
 
     @Override
-    public Pregunta generarPregunta(Dificultad dificultad, String lenguaje,String categoriaPrincipal, List<String> tagsTematicas, List<String> tagsYaUtilizadas) {
+    public Pregunta generarPregunta(Dificultad dificultad, Long lenguajeId,Long categoriaId, List<String> tagsTematicas, List<String> tagsYaUtilizadas) {
         log.info("Iniciando generación de pregunta con dificultad: {} y temáticas deseadas: {}", dificultad, tagsTematicas);
 
         int maxIntentos = 3; // Cantidad máxima de intentos para generar una pregunta válida
@@ -44,11 +47,14 @@ public class PreguntaService implements GenerarPreguntaPort, ValidarRespuestaPor
                 // 1. Convertir dificultad a string en minúscula para el prompt
                 String dificultadStr = (dificultad != null) ? dificultad.name().toLowerCase() : null;
 
+                Lenguaje lenguaje = consultarLenguajesPort.obtenerPorId(lenguajeId);
+                CategoriaTematica categoria = consultarCategoriaTematicaPort.obtenerPorId(categoriaId);
+
                 // 2. Construir el prompt con dificultad, temáticas deseadas y temáticas ya utilizadas
                 String promptCompleto = promptBuilderService.construirPromptCompleto(
                         dificultadStr,
-                        lenguaje,
-                        categoriaPrincipal,
+                        lenguaje.nombre(),
+                        categoria.nombre(),
                         tagsTematicas,
                         tagsYaUtilizadas
                 );

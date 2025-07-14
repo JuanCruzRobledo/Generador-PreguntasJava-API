@@ -30,4 +30,9 @@ public class LenguajeService implements ConsultarLenguajesPort {
     public List<Lenguaje> obtenerTodosLosLenguajes() {
         return lenguajeRepository.obtenerLenguajes();
     }
+
+    @Override
+    public Lenguaje obtenerPorId(Long id) {
+        return lenguajeRepository.obtenerLenguaje(id);
+    }
 }

@@ -18,4 +18,6 @@ public interface ConsultarCategoriaTematicaPort {
     List<CategoriaTematica> obtenerTodasLasCategorias();
 
     List<CategoriaTematica> obtenerTodasLasCategoriasDeUnLenguaje(Long id);
+
+    CategoriaTematica obtenerPorId(Long id);
 }

@@ -17,4 +17,5 @@ public interface ConsultarLenguajesPort {
      */
     List<Lenguaje> obtenerTodosLosLenguajes();
 
+    Lenguaje obtenerPorId(Long id);
 }

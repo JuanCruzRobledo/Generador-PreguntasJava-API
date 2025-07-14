@@ -1,5 +1,6 @@
 package org.jcr.generadorpreguntasjava.infrastructure.persistence.repository.adapter;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jcr.generadorpreguntasjava.domain.model.Lenguaje;
@@ -35,5 +36,11 @@ public class LenguajeJpaAdapter implements LenguajeRepositoryPort {
     public List<Lenguaje> obtenerLenguajes() {
         List<LenguajeEntity> lenguajes = lenguajeRepository.findAll();
         return lenguajePersistenceMapper.toDomainList(lenguajes);
+    }
+
+    @Override
+    public Lenguaje obtenerLenguaje(Long id) {
+        LenguajeEntity lenguaje = lenguajeRepository.findById(id).orElseThrow(()-> new EntityNotFoundException("No se encontró el lenguaje"));
+        return lenguajePersistenceMapper.toDomain(lenguaje);
     }
 }
