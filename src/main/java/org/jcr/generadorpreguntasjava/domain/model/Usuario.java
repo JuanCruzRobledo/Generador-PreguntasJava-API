@@ -51,13 +51,51 @@ public record Usuario(
     }
     
     /**
+     * Actualiza solo el avatar del usuario.
+     */
+    public Usuario actualizarAvatar(String nuevoAvatar) {
+        return new Usuario(this.id, this.googleId, this.email, this.nombre,
+                          nuevoAvatar, this.fechaRegistro, this.ultimoAcceso, this.activo);
+    }
+    
+    /**
+     * Crea un nuevo usuario OAuth2 con información básica.
+     * Este método es usado cuando un usuario se registra por primera vez con OAuth2.
+     */
+    public static Usuario crearUsuarioOAuth2(String email, String nombre, String avatar) {
+        return new Usuario(
+            null,              // ID será asignado por la base de datos
+            null,              // googleId será asignado después
+            email,
+            nombre,
+            avatar,
+            LocalDateTime.now(),
+            LocalDateTime.now(),
+            true
+        );
+    }
+    
+    /**
+     * Crea un nuevo usuario OAuth2 con Google ID.
+     */
+    public static Usuario crearUsuarioOAuth2ConGoogleId(String googleId, String email, String nombre, String avatar) {
+        return new Usuario(
+            null,              // ID será asignado por la base de datos
+            googleId,
+            email,
+            nombre,
+            avatar,
+            LocalDateTime.now(),
+            LocalDateTime.now(),
+            true
+        );
+    }
+    
+    /**
      * Valida que el usuario tenga los datos mínimos requeridos.
+     * Para usuarios OAuth2, el googleId puede ser null inicialmente.
      */
     public void validar() {
-        if (googleId == null || googleId.trim().isEmpty()) {
-            throw new IllegalArgumentException("El Google ID no puede estar vacío");
-        }
-        
         if (email == null || email.trim().isEmpty()) {
             throw new IllegalArgumentException("El email no puede estar vacío");
         }
