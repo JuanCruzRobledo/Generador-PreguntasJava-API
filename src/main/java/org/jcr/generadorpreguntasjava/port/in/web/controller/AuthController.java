@@ -10,6 +10,7 @@ import org.jcr.generadorpreguntasjava.domain.model.Usuario;
 import org.jcr.generadorpreguntasjava.infrastructure.security.service.CookieService;
 import org.jcr.generadorpreguntasjava.port.in.web.dto.response.AuthResponse;
 import org.jcr.generadorpreguntasjava.port.in.web.dto.request.LoginRequest;
+import org.jcr.generadorpreguntasjava.shared.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,303 +24,248 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    
+
     private final AuthenticationService authenticationService;
     private final CookieService cookieService;
-    
+
     /**
-     * Endpoint POST /auth/login
-     * Autentica un usuario con email y contraseña.
-     * Devuelve access token y refresh token en cookies HttpOnly y Secure.
-     * 
-     * @param loginRequest Credenciales del usuario
-     * @param response Respuesta HTTP para configurar cookies
-     * @return Información del usuario autenticado
+     * POST /auth/login
+     * Autentica usuario y devuelve tokens en cookies HttpOnly/Secure.
+     * Respuesta: ApiResponse<AuthResponse>
      */
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(
+    public ResponseEntity<ApiResponse<AuthResponse>> login(
             @Valid @RequestBody LoginRequest loginRequest,
             HttpServletResponse response) {
-        
         log.info("Intento de login para usuario: {}", loginRequest.email());
-        
+
         try {
-            // Autenticar usuario
             Usuario usuario = authenticationService.authenticate(
-                loginRequest.email(), 
-                loginRequest.password()
+                    loginRequest.email(),
+                    loginRequest.password()
             );
-            
-            // Generar tokens
+
             AuthenticationService.AuthTokens tokens = authenticationService.generateTokens(usuario);
-            
-            // Configurar cookies con tokens
+
             cookieService.createAccessTokenCookie(response, tokens.accessToken());
             cookieService.createRefreshTokenCookie(response, tokens.refreshToken());
-            
-            // Crear respuesta exitosa
+
             AuthResponse authResponse = AuthResponse.success(
-                usuario.id(),
-                usuario.email(),
-                usuario.nombre(),
-                usuario.avatar()
+                    usuario.id(),
+                    usuario.email(),
+                    usuario.nombre(),
+                    usuario.avatar()
             );
-            
+
             log.info("Login exitoso para usuario: {}", loginRequest.email());
-            return ResponseEntity.ok(authResponse);
-            
+            return ResponseEntity.ok(ApiResponse.exito(authResponse, "Autenticación exitosa"));
+
         } catch (AuthenticationService.AuthenticationException e) {
             log.warn("Fallo en autenticación para usuario {}: {}", loginRequest.email(), e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(AuthResponse.error(e.getMessage()));
-                
+                    .body(ApiResponse.error("No autorizado", e.getMessage()));
+
         } catch (Exception e) {
-            log.error("Error interno durante login para usuario {}: {}", 
-                loginRequest.email(), e.getMessage(), e);
+            log.error("Error interno durante login para usuario {}: {}", loginRequest.email(), e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(AuthResponse.error("Error interno del servidor"));
+                    .body(ApiResponse.error("Error interno del servidor", e.getMessage()));
         }
     }
-    
+
     /**
-     * Endpoint POST /auth/refresh
-     * Lee el refresh token desde la cookie y devuelve un nuevo access token.
-     * También devuelve el nuevo access token en cookie HttpOnly y Secure.
-     * 
-     * @param request Petición HTTP para leer cookies
-     * @param response Respuesta HTTP para configurar cookies
-     * @return Información del usuario con token renovado
+     * POST /auth/refresh
+     * Renueva access token usando refresh token en cookie.
+     * Respuesta: ApiResponse<AuthResponse>
      */
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refresh(
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(
             HttpServletRequest request,
             HttpServletResponse response) {
-        
         log.debug("Intento de refresh token");
-        
+
         try {
-            // Obtener refresh token desde cookie
             String refreshToken = cookieService.getRefreshTokenFromCookies(request)
-                .orElseThrow(() -> new AuthenticationService.AuthenticationException(
-                    "Refresh token no encontrado"));
-            
-            // Renovar access token
+                    .orElseThrow(() -> new AuthenticationService.AuthenticationException("Refresh token no encontrado"));
+
             String newAccessToken = authenticationService.refreshAccessToken(refreshToken);
-            
-            // Configurar nueva cookie con el access token renovado
+
             cookieService.createAccessTokenCookie(response, newAccessToken);
-            
-            // Obtener información del usuario desde el token renovado
+
             Usuario usuario = authenticationService.getUserFromToken(newAccessToken);
-            
-            // Crear respuesta exitosa
+
             AuthResponse authResponse = AuthResponse.success(
-                usuario.id(),
-                usuario.email(),
-                usuario.nombre(),
-                usuario.avatar()
+                    usuario.id(),
+                    usuario.email(),
+                    usuario.nombre(),
+                    usuario.avatar()
             );
-            
+
             log.info("Token renovado exitosamente para usuario: {}", usuario.email());
-            return ResponseEntity.ok(authResponse);
-            
+            return ResponseEntity.ok(ApiResponse.exito(authResponse, "Token renovado exitosamente"));
+
         } catch (AuthenticationService.AuthenticationException e) {
             log.warn("Fallo en renovación de token: {}", e.getMessage());
-            
-            // Limpiar cookies en caso de error
             cookieService.clearAuthenticationCookies(response);
-            
+
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(AuthResponse.error(e.getMessage()));
-                
+                    .body(ApiResponse.error("No autorizado", e.getMessage()));
+
         } catch (Exception e) {
             log.error("Error interno durante refresh token: {}", e.getMessage(), e);
-            
-            // Limpiar cookies en caso de error
             cookieService.clearAuthenticationCookies(response);
-            
+
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(AuthResponse.error("Error interno del servidor"));
+                    .body(ApiResponse.error("Error interno del servidor", e.getMessage()));
         }
     }
-    
+
     /**
-     * Endpoint POST /auth/logout
-     * Invalida las cookies de tokens de autenticación.
-     * 
-     * @param request Petición HTTP para leer cookies
-     * @param response Respuesta HTTP para limpiar cookies
-     * @return Confirmación de logout
+     * POST /auth/logout
+     * Invalida tokens y limpia cookies.
+     * Respuesta: ApiResponse<AuthResponse>
      */
     @PostMapping("/logout")
-    public ResponseEntity<AuthResponse> logout(
+    public ResponseEntity<ApiResponse<AuthResponse>> logout(
             HttpServletRequest request,
             HttpServletResponse response) {
-        
         log.debug("Intento de logout");
-        
+
         try {
-            // Obtener access token desde cookie para logging
             cookieService.getAccessTokenFromCookies(request)
-                .ifPresent(accessToken -> {
-                    try {
-                        authenticationService.logout(accessToken);
-                    } catch (Exception e) {
-                        log.debug("Error al procesar logout: {}", e.getMessage());
-                    }
-                });
-            
-            // Limpiar cookies de autenticación
+                    .ifPresent(accessToken -> {
+                        try {
+                            authenticationService.logout(accessToken);
+                        } catch (Exception e) {
+                            log.debug("Error al procesar logout: {}", e.getMessage());
+                        }
+                    });
+
             cookieService.clearAuthenticationCookies(response);
-            
+
             log.info("Logout exitoso");
-            return ResponseEntity.ok(AuthResponse.success(null, null, null, null));
-            
+            // Respuesta sin datos, solo mensaje de éxito
+            return ResponseEntity.ok(ApiResponse.exito(null, "Logout exitoso"));
+
         } catch (Exception e) {
             log.error("Error interno durante logout: {}", e.getMessage(), e);
-            
-            // Limpiar cookies incluso si hay error
             cookieService.clearAuthenticationCookies(response);
-            
+
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(AuthResponse.error("Error interno del servidor"));
+                    .body(ApiResponse.error("Error interno del servidor", e.getMessage()));
         }
     }
-    
+
     /**
-     * Endpoint GET /auth/me
-     * Obtiene información del usuario autenticado actual.
-     * 
-     * @param request Petición HTTP para leer cookies
-     * @return Información del usuario actual
+     * GET /auth/me
+     * Devuelve info del usuario actual basado en token.
+     * Respuesta: ApiResponse<AuthResponse>
      */
     @GetMapping("/me")
-    public ResponseEntity<AuthResponse> getCurrentUser(HttpServletRequest request) {
-        
+    public ResponseEntity<ApiResponse<AuthResponse>> getCurrentUser(HttpServletRequest request) {
         log.debug("Obteniendo información del usuario actual");
-        
+
         try {
-            // Obtener access token desde cookie
             String accessToken = cookieService.getAccessTokenFromCookies(request)
-                .orElseThrow(() -> new AuthenticationService.AuthenticationException(
-                    "Access token no encontrado"));
-            
-            // Obtener usuario desde token
+                    .orElseThrow(() -> new AuthenticationService.AuthenticationException("Access token no encontrado"));
+
             Usuario usuario = authenticationService.getUserFromToken(accessToken);
-            
-            // Crear respuesta exitosa
+
             AuthResponse authResponse = AuthResponse.success(
-                usuario.id(),
-                usuario.email(),
-                usuario.nombre(),
-                usuario.avatar()
+                    usuario.id(),
+                    usuario.email(),
+                    usuario.nombre(),
+                    usuario.avatar()
             );
-            
-            return ResponseEntity.ok(authResponse);
-            
+
+            return ResponseEntity.ok(ApiResponse.exito(authResponse, "Usuario autenticado"));
+
         } catch (AuthenticationService.AuthenticationException e) {
             log.warn("Token inválido o expirado: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(AuthResponse.error(e.getMessage()));
-                
+                    .body(ApiResponse.error("No autorizado", e.getMessage()));
+
         } catch (Exception e) {
             log.error("Error interno obteniendo usuario actual: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(AuthResponse.error("Error interno del servidor"));
+                    .body(ApiResponse.error("Error interno del servidor", e.getMessage()));
         }
     }
-    
+
     /**
-     * Endpoint GET /auth/status
-     * Verifica el estado de autenticación sin devolver información sensible.
-     * 
-     * @param request Petición HTTP para leer cookies
-     * @return Estado de autenticación
+     * GET /auth/status
+     * Verifica si el usuario está autenticado (token válido).
+     * Respuesta: ApiResponse<AuthResponse>
      */
     @GetMapping("/status")
-    public ResponseEntity<AuthResponse> getAuthStatus(HttpServletRequest request) {
-        
+    public ResponseEntity<ApiResponse<AuthResponse>> getAuthStatus(HttpServletRequest request) {
         try {
-            // Verificar si existe access token válido
             String accessToken = cookieService.getAccessTokenFromCookies(request)
-                .orElse(null);
-            
+                    .orElse(null);
+
             if (accessToken == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(AuthResponse.error("No autenticado"));
+                        .body(ApiResponse.error("No autenticado", "No hay token"));
             }
-            
-            // Verificar validez del token
+
             authenticationService.getUserFromToken(accessToken);
-            
-            return ResponseEntity.ok(AuthResponse.success(null, null, null, null));
-            
+
+            return ResponseEntity.ok(ApiResponse.exito(null, "Usuario autenticado"));
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(AuthResponse.error("Token inválido"));
+                    .body(ApiResponse.error("No autorizado", "Token inválido o expirado"));
         }
     }
-    
+
     /**
-     * Endpoint GET /auth/oauth2/success
-     * Maneja la respuesta exitosa después de la autenticación OAuth2.
-     * 
-     * @param request Petición HTTP para leer cookies
-     * @return Información del usuario autenticado con OAuth2
+     * GET /auth/oauth2/success
+     * Maneja éxito OAuth2, devuelve info usuario con tokens en cookies.
+     * Respuesta: ApiResponse<AuthResponse>
      */
     @GetMapping("/oauth2/success")
-    public ResponseEntity<AuthResponse> oauth2Success(HttpServletRequest request) {
-        
+    public ResponseEntity<ApiResponse<AuthResponse>> oauth2Success(HttpServletRequest request) {
         log.debug("Procesando éxito de OAuth2");
-        
+
         try {
-            // Obtener access token desde cookie (debería estar establecido por el OAuth2SuccessHandler)
             String accessToken = cookieService.getAccessTokenFromCookies(request)
-                .orElseThrow(() -> new AuthenticationService.AuthenticationException(
-                    "Access token no encontrado después de OAuth2"));
-            
-            // Obtener usuario desde token
+                    .orElseThrow(() -> new AuthenticationService.AuthenticationException("Access token no encontrado después de OAuth2"));
+
             Usuario usuario = authenticationService.getUserFromToken(accessToken);
-            
-            // Crear respuesta exitosa
+
             AuthResponse authResponse = AuthResponse.success(
-                usuario.id(),
-                usuario.email(),
-                usuario.nombre(),
-                usuario.avatar()
+                    usuario.id(),
+                    usuario.email(),
+                    usuario.nombre(),
+                    usuario.avatar()
             );
-            
+
             log.info("OAuth2 login exitoso para usuario: {}", usuario.email());
-            return ResponseEntity.ok(authResponse);
-            
+            return ResponseEntity.ok(ApiResponse.exito(authResponse, "OAuth2 autenticación exitosa"));
+
         } catch (AuthenticationService.AuthenticationException e) {
             log.warn("Fallo en OAuth2 success: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(AuthResponse.error(e.getMessage()));
-                
+                    .body(ApiResponse.error("No autorizado", e.getMessage()));
+
         } catch (Exception e) {
             log.error("Error interno en OAuth2 success: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(AuthResponse.error("Error interno del servidor"));
+                    .body(ApiResponse.error("Error interno del servidor", e.getMessage()));
         }
     }
-    
+
     /**
-     * Endpoint GET /auth/oauth2/failure
-     * Maneja errores en la autenticación OAuth2.
-     * 
-     * @param request Petición HTTP
-     * @return Respuesta de error
+     * GET /auth/oauth2/failure
+     * Maneja errores de OAuth2 y devuelve mensaje de error estandarizado.
+     * Respuesta: ApiResponse<AuthResponse>
      */
     @GetMapping("/oauth2/failure")
-    public ResponseEntity<AuthResponse> oauth2Failure(HttpServletRequest request) {
-        
+    public ResponseEntity<ApiResponse<AuthResponse>> oauth2Failure(HttpServletRequest request) {
         log.warn("Fallo en autenticación OAuth2");
-        
-        // Obtener parámetro de error si existe
+
         String error = request.getParameter("error");
         String errorDescription = request.getParameter("error_description");
-        
+
         String errorMessage = "Error en autenticación OAuth2";
         if (error != null) {
             errorMessage = error;
@@ -327,8 +273,45 @@ public class AuthController {
                 errorMessage += ": " + errorDescription;
             }
         }
-        
+
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .body(AuthResponse.error(errorMessage));
+                .body(ApiResponse.error(errorMessage, "OAuth2 error"));
+    }
+
+    /**
+     * POST /auth/invitado
+     * Crea un usuario anónimo y devuelve AuthResponse con tokens en cookies
+     */
+    @PostMapping("/invitado")
+    public ResponseEntity<ApiResponse<AuthResponse>> loginAnonimo(HttpServletResponse response) {
+        log.info("Creando usuario anónimo y generando sesión");
+
+        try {
+            // Crear usuario anónimo
+            Usuario anonimo = authenticationService.crearUsuarioAnonimo();
+
+            // Generar tokens de autenticación
+            AuthenticationService.AuthTokens tokens = authenticationService.generateTokens(anonimo);
+
+            // Setear ambos tokens en cookies HttpOnly
+            cookieService.createAccessTokenCookie(response, tokens.accessToken());
+            cookieService.createRefreshTokenCookie(response, tokens.refreshToken());
+
+            // Armar respuesta con info de usuario
+            AuthResponse authResponse = AuthResponse.success(
+                    anonimo.id(),
+                    anonimo.email(),
+                    anonimo.nombre(),
+                    anonimo.avatar()
+            );
+
+            log.info("Usuario anónimo autenticado correctamente: {}", anonimo.id());
+            return ResponseEntity.ok(ApiResponse.exito(authResponse, "Sesión iniciada como invitado"));
+
+        } catch (Exception e) {
+            log.error("Error al crear usuario anónimo autenticado: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("No se pudo iniciar como invitado", e.getMessage()));
+        }
     }
 }

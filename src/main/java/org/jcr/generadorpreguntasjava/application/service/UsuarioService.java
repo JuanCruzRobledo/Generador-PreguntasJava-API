@@ -253,12 +253,4 @@ public class UsuarioService implements GestionarUsuarioPort {
         return usuarioRepositoryPort.buscarPorEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con email: " + email));
     }
-
-    @Override
-    public Usuario crearUsuarioAnonimo() {
-        String uuid = UUID.randomUUID().toString();
-        String emailAnonimo = "anonimo+" + uuid + "@example.com";
-        Usuario anonimo = new Usuario("anon-" + uuid, emailAnonimo, "Anónimo", null);
-        return usuarioRepositoryPort.guardar(anonimo);
-    }
 }

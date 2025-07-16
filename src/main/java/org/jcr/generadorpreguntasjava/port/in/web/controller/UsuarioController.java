@@ -74,29 +74,6 @@ public class UsuarioController {
             return ApiResponse.error("Error interno al obtener usuario", e.getMessage());
         }
     }
-    
-    /**
-     * Endpoint para desarrollo que simula la creación de un usuario anónimo.
-     * 
-     * POST /api/v1/usuarios/anonimo
-     */
-    @PostMapping("/anonimo")
-    @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<UsuarioResponse> crearUsuarioAnonimo() {
-        log.info("Solicitud para crear usuario anónimo");
-        
-        try {
-            Usuario usuario = usuarioService.crearUsuarioAnonimo();
-            UsuarioResponse response = preguntaMapper.toUsuarioResponse(usuario);
-            
-            log.info("Usuario anónimo creado exitosamente: {}", usuario.id());
-            return ApiResponse.exito(response, "Usuario anónimo creado exitosamente");
-            
-        } catch (Exception e) {
-            log.error("Error al crear usuario anónimo: {}", e.getMessage(), e);
-            return ApiResponse.error("Error interno al crear usuario anónimo", e.getMessage());
-        }
-    }
 
     /**
      * Actualiza el perfil del usuario.

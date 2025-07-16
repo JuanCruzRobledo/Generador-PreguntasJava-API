@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Servicio de autenticación en el dominio.
@@ -78,6 +79,18 @@ public class AuthenticationService {
         
         log.info("Usuario autenticado exitosamente: {}", email);
         return usuarioActualizado;
+    }
+
+    /**
+     * Genera un usuario anonimo
+     *
+     * @return Usuario anonimo
+     */
+    public Usuario crearUsuarioAnonimo() {
+        String uuid = UUID.randomUUID().toString();
+        String emailAnonimo = "anonimo+" + uuid + "@example.com";
+        Usuario anonimo = new Usuario("anon-" + uuid, emailAnonimo, "Anónimo", null);
+        return usuarioRepositoryPort.guardar(anonimo);
     }
     
     /**

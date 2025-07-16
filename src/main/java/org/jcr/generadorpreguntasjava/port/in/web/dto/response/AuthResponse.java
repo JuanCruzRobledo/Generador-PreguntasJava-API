@@ -5,7 +5,7 @@ package org.jcr.generadorpreguntasjava.port.in.web.dto.response;
  * Contiene información del usuario autenticado.
  */
 public record AuthResponse(
-    Long userId,
+    Long id,
     String email,
     String nombre,
     String avatar,

@@ -117,11 +117,4 @@ public interface GestionarUsuarioPort {
      * @return Usuario autenticado
      */
     Usuario obtenerUsuarioActual();
-
-    /**
-     * Obtiene un usuario Anonimo.
-     *
-     * @return Usuario autenticado
-     */
-    Usuario crearUsuarioAnonimo();
 }
